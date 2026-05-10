@@ -1,13 +1,14 @@
 # AutoEval
 
 ## Project Description
-AutoEval is a domain-agnostic, instruction-tuned evaluation system that turns rubric-based scoring into a reusable ML pipeline. Users upload a dataset (CSV or JSON) with six fields—`task`, `reference`, `submission`, `rubric`, `score`, and `rationale`—and AutoEval fine-tunes a Mistral-7B-Instruct model using LoRA so it can act as a scoring evaluator. The trained evaluator outputs both a numeric score (0–4) and a natural language rationale.
+AutoEval is a domain-agnostic, instruction-tuned evaluation system that turns rubric-based scoring into a reusable ML pipeline. Users upload a JSONL dataset with six fields: `task`, `reference_answer`, `answer`, `rubric` (a list of weighted criteria), `score`, and `reasoning`. AutoEval fine-tunes a Mistral-7B-Instruct model using LoRA so it can act as a scoring evaluator. The trained evaluator outputs both a numeric score and a natural language rationale.
 
 Manual rubric scoring is expensive, slow, and highly domain-specific. AutoEval addresses this by instruction-tuning a general-purpose LLM to follow rubric constraints and generate consistent scores with explanations. Rationales provide transparency and make the model useful for audit and review.
 
 ## Key Features
 - Domain-agnostic evaluation across tasks and industries
 - Automatic dataset validation for the 6-field schema
+- JSONL upload API with line-level validation errors
 - Instruction-tuned LLM scoring with rubric conditioning
 - Combined score + rationale output
 - LoRA-based efficient fine-tuning
@@ -25,6 +26,9 @@ AUTOEVAL/
 │  ├─ training/             # train.py, LoRA setup, training configs
 │  ├─ evaluation/           # Metrics and evaluation scripts
 │  ├─ inference/            # Prediction and scoring logic
+│  ├─ api/                  # FastAPI entrypoint and routes
+│  ├─ services/             # Service layer (validation + persistence)
+│  ├─ schemas/              # Pydantic DTOs
 │  └─ utils/                # Shared helpers (IO, logging, validation)
 ├─ configs/                 # YAML configs for training and evaluation
 ├─ models/                  # Base models, LoRA adapters, merged checkpoints
@@ -35,7 +39,7 @@ AUTOEVAL/
 ```
 
 ## How It Works (Pipeline)
-1. Dataset upload in CSV or JSON format.
+1. Dataset upload as JSONL via API.
 2. Validation against the required 6-field schema.
 3. Prompt formatting in `[INST]` style for instruction tuning.
 4. Train/validation/test split generation.
@@ -51,15 +55,18 @@ AUTOEVAL/
 - Metrics: Accuracy, MAE, Quadratic Weighted Kappa (QWK)
 
 ## Example Input/Output
-**Input (one row)**
+**Input (one JSONL record)**
 ```json
 {
 	"task": "Grade the response to the customer email.",
-	"reference": "We apologize for the delay and offer a replacement within 3 business days.",
-	"submission": "Sorry for the wait. We can send a replacement this week.",
-	"rubric": "Score 4: apologizes, gives clear replacement timeline. Score 2: apology but vague timeline. Score 0: no apology or resolution.",
+	"reference_answer": "We apologize for the delay and offer a replacement within 3 business days.",
+	"answer": "Sorry for the wait. We can send a replacement this week.",
+	"rubric": [
+		{"criterion": "Apology", "description": "Must apologize clearly", "weight": 0.5},
+		{"criterion": "Resolution", "description": "Offer replacement with a timeline", "weight": 0.5}
+	],
 	"score": 3,
-	"rationale": "Includes an apology and a replacement, but the timeline is less specific than the rubric's 3 business days."
+	"reasoning": "Includes an apology and a replacement, but the timeline is less specific than 3 business days."
 }
 ```
 
@@ -81,6 +88,18 @@ pip install -r requirements.txt
 ```
 
 ## Usage
+**API (dataset upload)**
+```bash
+uvicorn src.api.main:app --reload
+```
+
+**Upload**
+```
+POST /datasets/upload
+Content-Type: multipart/form-data
+file: <dataset.jsonl>
+```
+
 **Training**
 ```bash
 python src/training/train.py --config configs/train.yaml
@@ -104,5 +123,6 @@ This is a two-person project:
 ## Future Improvements
 - Automated dataset generation and augmentation
 - Multi-domain evaluator ensembles
+- Partial-save mode for invalid JSONL uploads
 - API deployment for real-time scoring
 - Larger base models and domain-specific adapters
