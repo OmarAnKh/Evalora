@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+import uuid
 
 from pydantic import ValidationError
 
@@ -48,8 +49,8 @@ def save_jsonl_records(records: list[EvaluationSample]) -> str:
     base_dir = _repo_root() / "data" / "raw"
     base_dir.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    output_path = base_dir / f"dataset_{timestamp}.jsonl"
+    dataset_uuid = str(uuid.uuid4())
+    output_path = base_dir / f"{dataset_uuid}.jsonl"
 
     with output_path.open("w", encoding="utf-8") as handle:
         for record in records:
