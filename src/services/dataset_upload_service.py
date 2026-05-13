@@ -13,6 +13,12 @@ def _repo_root() -> Path:
 
 
 def parse_jsonl_upload(upload) -> tuple[list[EvaluationSample], list[dict[str, Any]]]:
+    """Parses a JSONL file upload and validates each line against the EvaluationSample schema.
+    Args:
+        upload: The uploaded file object containing the JSONL data.
+    Returns:
+        A tuple containing a list of valid EvaluationSample records and a list of errors encountered during parsing.
+    """
     records: list[EvaluationSample] = []
     errors: list[dict[str, Any]] = []
 
@@ -45,6 +51,12 @@ def parse_jsonl_upload(upload) -> tuple[list[EvaluationSample], list[dict[str, A
 
 
 def save_jsonl_records(records: list[EvaluationSample]) -> str:
+    """Saves a list of EvaluationSample records to a JSONL file in the data/raw directory.
+    Args:
+        records: A list of EvaluationSample instances to be saved.
+    Returns:
+        The file path of the saved JSONL file.
+    """
     base_dir = _repo_root() / "data" / "raw"
     base_dir.mkdir(parents=True, exist_ok=True)
 
