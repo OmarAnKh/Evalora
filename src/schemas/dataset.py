@@ -4,6 +4,18 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class RubricItem(BaseModel):
+    """Represents a single criterion in the evaluation rubric.
+
+    Attributes:
+        criterion (str): The name of the evaluation criterion.
+        description (str): A detailed description of the criterion.
+        weight (float): The weight of the criterion in the overall score (must be non-negative).
+
+    Returns:
+        RubricItem: An instance of the RubricItem class.
+
+    """
+
     criterion: str = Field(min_length=1)
     description: str = Field(min_length=1)
     weight: float = Field(ge=0)
@@ -20,6 +32,20 @@ class RubricItem(BaseModel):
 
 
 class EvaluationSample(BaseModel):
+    """Represents a single evaluation sample for a given task.
+
+    Attributes:
+        task (str): The description of the task being evaluated.
+        reference_answer (str): The correct answer for the task.
+        answer (str): The answer provided by the model being evaluated.
+        rubric (List[RubricItem]): A list of RubricItem instances representing the evaluation criteria.
+        score (int): The overall score for the evaluation sample (must be non-negative).
+        reasoning (str): The reasoning behind the evaluation score.
+
+    Returns:
+        EvaluationSample: An instance of the EvaluationSample class.
+    """
+
     task: str = Field(min_length=1)
     reference_answer: str = Field(min_length=1)
     answer: str = Field(min_length=1)
