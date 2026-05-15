@@ -4,9 +4,11 @@ from fastapi.responses import JSONResponse
 from src.schemas.dataset import EvaluationSample
 from src.services.dataset_upload_service import parse_jsonl_upload, save_jsonl_records
 from src.services.dataset_preprocessing_service import PreprocessingService
+from src.services.data_formatting_service import DataFormattingService
 
 router = APIRouter()
 preprocessing_service = PreprocessingService()
+data_formatting_service = DataFormattingService()
 
 
 @router.post("/upload")
@@ -65,6 +67,16 @@ def preprocess_dataset(file_id: str) -> JSONResponse:
 def split_dataset(file_id: str) -> JSONResponse:
     try:
         result = preprocessing_service.split(file_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+    return JSONResponse(status_code=200, content=result)
+
+
+@router.get("/format/{file_id}")
+def format_dataset(file_id: str) -> JSONResponse:
+    try:
+        result = data_formatting_service.format_file(file_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 
