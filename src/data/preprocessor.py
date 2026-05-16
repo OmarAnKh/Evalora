@@ -92,6 +92,40 @@ class Preprocessor:
 
         return records, errors
 
+    def run_records(
+        self,
+        records: list[EvaluationSample],
+    ) -> tuple[list[EvaluationSample], list[dict[str, Any]]]:
+        """run_records preprocesses already-loaded records in memory.
+
+        Args:
+            records (list[EvaluationSample]): Incoming evaluation samples.
+
+        Returns:
+            tuple[list[EvaluationSample], list[dict[str, Any]]]: The normalized records and errors.
+        """
+
+        processed: list[EvaluationSample] = []
+        errors: list[dict[str, Any]] = []
+        seen: set[str] = set()
+
+        for index, record in enumerate(records, start=1):
+            try:
+                payload = self._normalize(record.model_dump())
+                normalized = EvaluationSample.model_validate(payload)
+            except ValidationError as exc:
+                errors.append({"line": index, "error": exc.errors()})
+                continue
+
+            signature = self._build_signature(normalized)
+            if signature in seen:
+                continue
+
+            seen.add(signature)
+            processed.append(normalized)
+
+        return processed, errors
+
     def _build_signature(
         self,
         record: EvaluationSample,

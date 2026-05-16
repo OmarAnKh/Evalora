@@ -1,6 +1,7 @@
 import json
 import random
 from pathlib import Path
+from typing import Any
 
 from src.schemas.dataset import EvaluationSample
 
@@ -32,9 +33,14 @@ class Splitter:
             raise FileNotFoundError(f"Input file not found: {file_path}")
 
         records = self._load_records(source_path)
-        random.Random(self.seed).shuffle(records)
+        return self.split_records(records)
+
+    def split_records(self, records: list[Any]) -> dict[str, list[Any]]:
+        """Splits preloaded records into train/validation/test sets."""
+        shuffled = list(records)
+        random.Random(self.seed).shuffle(shuffled)
         train_records, validation_records, test_records = self._partition_records(
-            records
+            shuffled
         )
 
         return {

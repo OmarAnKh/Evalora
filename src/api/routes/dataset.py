@@ -1,7 +1,8 @@
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
+from transformers import AutoTokenizer
 
-from src.schemas.dataset import EvaluationSample
+from src.schemas.pipeline import FormatRequest, FormatResponse
 from src.services.dataset_upload_service import parse_jsonl_upload, save_jsonl_records
 from src.services.dataset_preprocessing_service import PreprocessingService
 from src.services.data_formatting_service import DataFormattingService
@@ -73,11 +74,12 @@ def split_dataset(file_id: str) -> JSONResponse:
     return JSONResponse(status_code=200, content=result)
 
 
-@router.get("/format/{file_id}")
-def format_dataset(file_id: str) -> JSONResponse:
+@router.post("/format/{file_id}", response_model=FormatResponse)
+def format_dataset(file_id: str, request: FormatRequest) -> FormatResponse:
     try:
-        result = data_formatting_service.format_file(file_id)
+        tokenizer = AutoTokenizer.from_pretrained(request.tokenizer_model.value)
+        records = data_formatting_service.format_file(file_id, tokenizer)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 
-    return JSONResponse(status_code=200, content=result)
+    return FormatResponse(status="ok", formatted_records=len(records), records=records)

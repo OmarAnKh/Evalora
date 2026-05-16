@@ -43,6 +43,29 @@ class PreprocessingService:
             "path": output_path,
         }
 
+    def preprocess_records(
+        self,
+        records: list[EvaluationSample],
+    ) -> dict[str, Any]:
+        """preprocess_records runs preprocessing for in-memory records.
+
+        Args:
+            records (list[EvaluationSample]): Parsed evaluation samples.
+
+        Returns:
+            dict[str, Any]: A summary of preprocessing results and normalized records.
+        """
+
+        processed, errors = self._preprocessor.run_records(records)
+
+        return {
+            "status": "ok" if processed else "empty",
+            "accepted": len(processed),
+            "rejected": len(errors),
+            "errors": errors,
+            "records": processed,
+        }
+
     def _save_processed(self, file_path: str, records: list[EvaluationSample]) -> str:
         """_save_processed saves records to a file at the specified path.
 
