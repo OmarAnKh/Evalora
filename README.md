@@ -82,9 +82,9 @@ AUTOEVAL/
 **Python**: 3.10+ recommended
 
 ```bash
-python -m venv .venv
+uv venv .venv
 source .venv/bin/activate  # On Windows: .\.venv\Scripts\activate
-pip install -r requirements.txt
+uv sync
 ```
 
 ## Usage
