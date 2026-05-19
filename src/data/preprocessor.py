@@ -1,139 +1,59 @@
 import hashlib
 import json
 import unicodedata
-from pathlib import Path
 from typing import Any
-
-from pydantic import ValidationError
-
-from src.schemas.dataset import EvaluationSample
+from datasets import Dataset
 
 
 class Preprocessor:
-    """Preprocessor is responsible for reading raw dataset files, validating and normalizing the records,
-    and removing duplicates based on a content signature.
-    """
 
-    def run(
-        self,
-        file_id: str,
-    ) -> tuple[list[EvaluationSample], list[dict[str, Any]]]:
-        """run executes the preprocessing steps on the specified dataset file. It reads the file, validates each record against the EvaluationSample schema,
-            normalizes the content, and builds a signature to filter out duplicates.
-
+    def preprocess(self, dataset: Dataset) -> Dataset:
+        """Preprocesses the input dataset by normalizing text fields and removing duplicates.
         Args:
-            file_id (str): The identifier of the dataset file to preprocess, typically the filename.
-
-        Raises:
-            FileNotFoundError: Raised if the specified file is not found.
-
+            dataset (datasets.Dataset): A Hugging Face Dataset containing the evaluation samples to be preprocessed.
         Returns:
-            tuple[list[EvaluationSample], list[dict[str, Any]]]: A tuple containing the list of preprocessed records and the list of errors.
+            datasets.Dataset: A new Dataset where each example has been normalized and duplicates have been removed.
         """
-
-        repo_root = Path(__file__).resolve().parents[2]
-        path = repo_root / "data" / "raw" / file_id
-
-        if not path.exists():
-            raise FileNotFoundError(f"Input file not found: {file_id}")
-
-        records: list[EvaluationSample] = []
-        errors: list[dict[str, Any]] = []
-
         seen: set[str] = set()
+        rows: list[dict[str, Any]] = []
 
-        with path.open(
-            "r",
-            encoding="utf-8",
-        ) as handle:
+        for row in dataset:
+            normalized_row = self._normalize(row)
+            payload = {
+                "task": normalized_row.get("task", ""),
+                "reference_answer": normalized_row.get("reference_answer", ""),
+                "answer": normalized_row.get("answer", ""),
+                "rubric": normalized_row.get("rubric", ""),
+            }
+            signature = self._build_signature(payload)
 
-            for line_number, line in enumerate(
-                handle,
-                start=1,
-            ):
+            if signature in seen:
+                continue
 
-                line = line.strip()
+            seen.add(signature)
+            rows.append(normalized_row)
 
-                if not line:
-                    continue
+        return Dataset.from_list(rows)
 
-                try:
-                    payload = json.loads(line)
-
-                except json.JSONDecodeError as exc:
-                    errors.append(
-                        {
-                            "line": line_number,
-                            "error": (f"json decode error: {exc}"),
-                        }
-                    )
-                    continue
-
-                try:
-                    record = EvaluationSample.model_validate(self._normalize(payload))
-
-                except ValidationError as exc:
-                    errors.append(
-                        {
-                            "line": line_number,
-                            "error": exc.errors(),
-                        }
-                    )
-                    continue
-
-                signature = self._build_signature(record)
-
-                if signature in seen:
-                    continue
-
-                seen.add(signature)
-
-                records.append(record)
-
-        return records, errors
-
-    def _build_signature(
-        self,
-        record: EvaluationSample,
-    ) -> str:
-        """_build_signature generates a unique signature for a given EvaluationSample record by serializing its content and computing an MD5 hash. This signature is used to identify and filter out duplicate records during preprocessing.
-
+    def _build_signature(self, row: dict[str, Any]) -> str:
+        """Builds a unique signature for a given row by hashing its normalized content.
         Args:
-            record (EvaluationSample): The evaluation sample for which to build a signature.
-
+            row (dict): A dictionary representing a single evaluation sample, containing fields like 'task', 'reference_answer', 'answer', and 'rubric'.
         Returns:
-            str: The unique signature for the evaluation sample.
+            str: A unique hash string that serves as a signature for the input row, allowing for duplicate detection.
         """
-
-        payload = {
-            "task": record.task,
-            "reference_answer": (record.reference_answer),
-            "answer": record.answer,
-            "rubric": [rubric.model_dump(mode="json") for rubric in record.rubric],
-        }
-
-        serialized = json.dumps(
-            payload,
-            sort_keys=True,
-            ensure_ascii=False,
-            separators=(",", ":"),
+        payload = json.dumps(
+            row, sort_keys=True, ensure_ascii=False, separators=(",", ":")
         )
+        return hashlib.md5(payload.encode("utf-8")).hexdigest()
 
-        return hashlib.md5(serialized.encode("utf-8")).hexdigest()
-
-    def _normalize(
-        self,
-        value: Any,
-    ) -> Any:
-        """_normalize normalizes the input value by stripping whitespace from strings and recursively normalizing nested structures.
-
+    def _normalize(self, value: Any) -> Any:
+        """Normalizes a given value by stripping whitespace and normalizing Unicode characters.
         Args:
-            value (Any): The value to normalize.
-
+            value (Any): The value to be normalized.
         Returns:
-            Any: The normalized value, with strings stripped of leading and trailing whitespace and nested structures normalized recursively.
+            Any: The normalized value.
         """
-
         if isinstance(value, dict):
             return {key: self._normalize(val) for key, val in value.items()}
 
@@ -141,12 +61,7 @@ class Preprocessor:
             return [self._normalize(item) for item in value]
 
         if isinstance(value, str):
-
-            text = unicodedata.normalize(
-                "NFKC",
-                value,
-            )
-
+            text = unicodedata.normalize("NFKC", value)
             return " ".join(text.strip().split())
 
         return value

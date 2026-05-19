@@ -1,131 +1,97 @@
-import json
-from pathlib import Path
-from pydantic import ValidationError
-
-from src.schemas.dataset import EvaluationSample
-
+from unsloth import FastLanguageModel
 
 class Formatter:
-    """
-    Formats EvaluationSample records into
-    Mistral instruction-tuning text samples.
-    """
-
-    def format(
-        self,
-        record: EvaluationSample,
-    ) -> dict[str, str]:
-        """Formats a single EvaluationSample record into a Mistral instruction-tuning text sample.
-        Args:
-            record (EvaluationSample): The evaluation sample record to format.
-        Returns:
-            dict[str, str]: A dictionary containing the formatted text for the evaluation sample.
+    def __init__(self, model_name: str = "unsloth/mistral-7b-instruct-v0.2-bnb-4bit") -> None:
         """
-        rubric_text = self._format_rubric(record.rubric)
-        prompt = f"""<s>[INST]
-        You are an automated evaluation system.
+        Initializes the Formatter with a specified language model.
+        
+        Args:
+            model_name (str): The name of the pre-trained language model to use for formatting.
+        """
+        self.model, self.tokenizer = FastLanguageModel.from_pretrained(
+            model_name=model_name,
+            max_seq_length=2048,
+            load_in_4bit=True,
+        )
 
-        Task:
-        {record.task}
-
+    def format(self, example):
+        """Formats a single example into a structured prompt for evaluation. 
+        Args:
+            example (dict): A dictionary containing the fields 'task', 'reference_answer', 'answer
+            and 'rubric' that describe the evaluation sample.
+            
+            Returns:
+            dict: A dictionary with a single key 'prompt' containing the formatted prompt as a list of
+            messages for the language model.
+        """
+        
+        system_propmt = "You are an automated evaluation system."
+        user_prompt = f"""
+        Task : 
+        {example['task']}
+        
         Reference Answer:
-        {record.reference_answer}
-
+        {example['reference_answer']}
+        
         Student Answer:
-        {record.answer}
-
-        Rubric:
-        {rubric_text}
-
-        Evaluate the student answer and return:
-        - score
-        - reasoning
-
-        [/INST]
-
-        {{
-        "score": {record.score},
-        "reasoning": "{record.reasoning}"
-        }}
-        </s>"""
-
-        return {"text": prompt}
-
-    def format_batch(self, records: list[EvaluationSample]) -> list[dict[str, str]]:
-        """Formats a batch of EvaluationSample records.
-        Args:
-            records (list[EvaluationSample]): A list of EvaluationSample records to format.
-        Returns:
-            list[dict[str, str]]: A list of dictionaries containing the formatted text for each record.
+        {example['answer']}
+        
+        Runbric:
+        {example['rubric']}
+        
+         Evaluate the student answer and return:
+            - score
+            - reasoning
         """
+        assistant_prompt = f"""
+            {{
+            "score": {example['score']},
+            "reasoning": "{example['reasoning']}"
+            }}
+            """
+        system = {"role": "system", "content": system_propmt}
+        user = {"role": "user", "content": user_prompt}
+        assistant = {"role": "assistant", "content": assistant_prompt}
+        prompt = [system, user, assistant]
 
-        return [self.format(record) for record in records]
+        return {"prompt": prompt}
 
-    def _format_rubric(
-        self,
-        rubric,
-    ) -> str:
-        """Formats the rubric criteria into a readable string format.
-        Args:
-            rubric (list[Criterion]): A list of Criterion objects representing the evaluation rubric.
-        Returns:
-            str: A formatted string representation of the rubric criteria.
+    def reformat(self, dataset):
         """
-        return "\n".join(
-            (f"- {item.criterion} " f"(weight: {item.weight}): " f"{item.description}")
-            for item in rubric
+        Reformats an entire dataset by applying the formatting to each example.
+        Args:
+            dataset (datasets.Dataset): A Hugging Face Dataset containing the evaluation samples to be reformatted.
+        Returns:
+            datasets.Dataset: A new Dataset where each example has been reformatted into a structured prompt."""
+        
+        reformatted = dataset.map(self.format, remove_columns=dataset.column_names)
+
+        return reformatted
+
+    def encode(self, example):
+        """Encodes a single example's prompt into token IDs using the tokenizer.
+        Args:
+            example (dict): A dictionary containing the 'prompt' key with the formatted prompt to be
+            tokenized.
+        Returns:
+            dict: A dictionary containing the tokenized input IDs and attention mask for the prompt.
+        """
+        prompt = (
+            example["prompt"] if "prompt" in example else self.format(example)["prompt"]
+        )
+        encoded = self.tokenizer.apply_chat_template(
+            prompt,
+            tokenize=False,
+            add_generation_prompt=False,
         )
 
-    def format_file(self, file_id: str) -> list[dict[str, str]]:
-        """Formats evaluation sample records from a specified file.
+        return self.tokenizer(encoded, truncation=True)
+
+    def tokenize(self, dataset):
+        """Tokenizes an entire dataset by applying the encoding to each example.
         Args:
-            file_id (str): The identifier of the file containing evaluation sample records to format.
+            dataset (datasets.Dataset): A Hugging Face Dataset containing the evaluation samples to be tokenized
         Returns:
-            list[dict[str, str]]: A list of dictionaries containing the formatted text for each record in the file.
-        """
-
-        sub_path = "processed" if file_id.startswith("processed_") else "raw"
-        normalized_file_id = (
-            file_id if file_id.endswith(".jsonl") else f"{file_id}.jsonl"
-        )
-
-        repo_root = Path(__file__).resolve().parents[2]
-        path = repo_root / "data" / sub_path / normalized_file_id
-
-        if not path.exists():
-            # Backward-compatible fallback for callers that pass an exact filename.
-            fallback_path = repo_root / "data" / sub_path / file_id
-            if fallback_path.exists():
-                path = fallback_path
-            else:
-                raise FileNotFoundError(
-                    f"Input file not found: {file_id} (also tried: {normalized_file_id})"
-                )
-
-        with path.open(
-            "r",
-            encoding="utf-8",
-        ) as handle:
-            records: list[EvaluationSample] = []
-
-            for line_number, line in enumerate(handle, start=1):
-                line = line.strip()
-
-                if not line:
-                    continue
-
-                try:
-                    payload = json.loads(line)
-                except json.JSONDecodeError as exc:
-                    raise ValueError(
-                        f"Invalid JSON at line {line_number} in {file_id}: {exc}"
-                    ) from exc
-
-                try:
-                    records.append(EvaluationSample.model_validate(payload))
-                except ValidationError as exc:
-                    raise ValueError(
-                        f"Invalid record at line {line_number} in {file_id}: {exc}"
-                    ) from exc
-
-            return self.format_batch(records)
+            datasets.Dataset: A new Dataset where each example has been tokenized into input IDs and attention masks.
+            """
+        return dataset.map(self.encode, remove_columns=dataset.column_names)
