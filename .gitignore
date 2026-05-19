@@ -226,3 +226,5 @@ preprocessed
 digrams
 clustered
 /data/*
+unsloth_cache/
+unsloth_compiled_cache
