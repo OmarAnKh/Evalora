@@ -1,0 +1,18 @@
+[project]
+name = "autoeval"
+version = "0.1.0"
+description = "Rubric-based evaluator training pipeline."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.110.0",
+  "pydantic>=2.6.0",
+  "uvicorn>=0.29.0",
+  "python-multipart",
+  "datasets>=4.8.5",
+  "unsloth>=2025.11.1",
+  "zipp==4.1.0",
+]
+
+[tool.uv]
+# uv will generate uv.lock on first sync

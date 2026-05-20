@@ -49,6 +49,8 @@ def split_dataset(file_id: str) -> JSONResponse:
         result = preprocessing_service.split(file_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
 
     return JSONResponse(status_code=200, content=result)
 
@@ -58,6 +60,8 @@ def tokenize_dataset(file_id: str) -> JSONResponse:
         result = preprocessing_service.tokenize(file_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
 
     return JSONResponse(status_code=200, content=result)
 

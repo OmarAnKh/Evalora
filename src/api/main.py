@@ -4,6 +4,7 @@ import shutil
 from fastapi import FastAPI
 
 from src.api.routes.dataset import router as dataset_router
+from src.api.routes.pipeline import router as pipeline_router
 
 
 def _repo_root() -> Path:
@@ -34,3 +35,4 @@ def clear_data_directories_on_startup() -> None:
 
 
 app.include_router(dataset_router, prefix="/datasets", tags=["datasets"])
+app.include_router(pipeline_router, prefix="/pipeline", tags=["pipeline"])

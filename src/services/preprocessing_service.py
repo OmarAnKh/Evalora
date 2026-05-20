@@ -1,6 +1,6 @@
 from datasets import load_dataset
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 
 from src.data.preprocessor import Preprocessor
@@ -8,10 +8,10 @@ from src.data.formatter import Formatter
 
 
 class PreprocessingService:
-    def __init__(self) -> None:
+    def __init__(self, formatter: Optional[Formatter] = None) -> None:
         """Initializes the PreprocessingService with instances of the Preprocessor and Formatter classes."""
         self._preprocessor = Preprocessor()
-        self._formatter = Formatter()
+        self._formatter = formatter or Formatter()
 
     def _build_path(self, file_id: str, stage: str) -> Path:
         """Builds a file path for a given file ID and processing stage.
@@ -80,14 +80,25 @@ class PreprocessingService:
         file_path = self._build_path(file_id, "formatted")
         dataset = load_dataset("json", data_files=str(file_path), split="train")
 
-        train_test = dataset.train_test_split(test_size=0.2, seed=42)
-        test_valid = train_test["test"].train_test_split(test_size=0.5, seed=42)
+        if len(dataset) < 2:
+            raise ValueError("Need at least 2 records to split the dataset.")
 
-        data = {
-            "train": train_test["train"],
-            "validation": test_valid["train"],
-            "test": test_valid["test"],
-        }
+        train_test = dataset.train_test_split(test_size=0.2, seed=42)
+        test_set = train_test["test"]
+
+        if len(test_set) < 2:
+            data = {
+                "train": train_test["train"],
+                "validation": test_set,
+                "test": test_set.select([]),
+            }
+        else:
+            test_valid = test_set.train_test_split(test_size=0.5, seed=42)
+            data = {
+                "train": train_test["train"],
+                "validation": test_valid["train"],
+                "test": test_valid["test"],
+            }
 
         splits_dir = self._build_path(file_id, "splits")
         splits_dir.mkdir(parents=True, exist_ok=True)
@@ -121,17 +132,19 @@ class PreprocessingService:
             FileNotFoundError: If the split dataset files corresponding to the given file ID do not exist.
         """
         splits_dir = self._build_path(file_id, "splits")
-        train = load_dataset(
-            "json", data_files=str(splits_dir / f"{file_id}_train.jsonl"), split="train"
-        )
-        test = load_dataset(
-            "json", data_files=str(splits_dir / f"{file_id}_test.jsonl"), split="train"
-        )
-        validation = load_dataset(
-            "json",
-            data_files=str(splits_dir / f"{file_id}_validation.jsonl"),
-            split="train",
-        )
+        train_path = splits_dir / f"{file_id}_train.jsonl"
+        test_path = splits_dir / f"{file_id}_test.jsonl"
+        validation_path = splits_dir / f"{file_id}_validation.jsonl"
+
+        train = load_dataset("json", data_files=str(train_path), split="train")
+
+        def _load_or_empty(path: Path, reference):
+            if not path.exists() or path.stat().st_size == 0:
+                return reference.select([])
+            return load_dataset("json", data_files=str(path), split="train")
+
+        test = _load_or_empty(test_path, train)
+        validation = _load_or_empty(validation_path, train)
 
         train_tokenized = self._formatter.tokenize(train)
         test_tokenized = self._formatter.tokenize(test)
