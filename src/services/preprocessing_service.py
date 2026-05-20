@@ -5,13 +5,23 @@ from typing import Dict, Optional
 
 from src.data.preprocessor import Preprocessor
 from src.data.formatter import Formatter
+from src.data.splitter import split_dataset
+from src.services.model_loader import DEFAULT_MODEL_NAME
+from src.services.tokenizer_service import TokenizerService
 
 
 class PreprocessingService:
-    def __init__(self, formatter: Optional[Formatter] = None) -> None:
-        """Initializes the PreprocessingService with instances of the Preprocessor and Formatter classes."""
+    def __init__(
+        self,
+        formatter: Optional[Formatter] = None,
+        tokenizer_service: Optional[TokenizerService] = None,
+        model_name: str = DEFAULT_MODEL_NAME,
+    ) -> None:
+        """Initializes the PreprocessingService with formatter and tokenizer services."""
         self._preprocessor = Preprocessor()
         self._formatter = formatter or Formatter()
+        self._tokenizer_service = tokenizer_service
+        self._model_name = model_name
 
     def _build_path(self, file_id: str, stage: str) -> Path:
         """Builds a file path for a given file ID and processing stage.
@@ -68,8 +78,15 @@ class PreprocessingService:
             "formatted_file_path": str(formatted_path),
         }
 
-    def split(self, file_id: str) -> Dict:
-        """Splits the formatted dataset corresponding to the given file ID into training, validation, and test sets.
+    def split(
+        self,
+        file_id: str,
+        train_ratio: float = 0.8,
+        val_ratio: float = 0.1,
+        test_ratio: float = 0.1,
+        seed: int = 42,
+    ) -> Dict:
+        """Splits the formatted dataset into stratified train/validation/test sets.
         Args:
             file_id (str): The unique identifier for the dataset file to be split.
         Returns:
@@ -83,22 +100,14 @@ class PreprocessingService:
         if len(dataset) < 2:
             raise ValueError("Need at least 2 records to split the dataset.")
 
-        train_test = dataset.train_test_split(test_size=0.2, seed=42)
-        test_set = train_test["test"]
-
-        if len(test_set) < 2:
-            data = {
-                "train": train_test["train"],
-                "validation": test_set,
-                "test": test_set.select([]),
-            }
-        else:
-            test_valid = test_set.train_test_split(test_size=0.5, seed=42)
-            data = {
-                "train": train_test["train"],
-                "validation": test_valid["train"],
-                "test": test_valid["test"],
-            }
+        data = split_dataset(
+            dataset,
+            label_key="score",
+            train_ratio=train_ratio,
+            val_ratio=val_ratio,
+            test_ratio=test_ratio,
+            seed=seed,
+        )
 
         splits_dir = self._build_path(file_id, "splits")
         splits_dir.mkdir(parents=True, exist_ok=True)
@@ -123,7 +132,7 @@ class PreprocessingService:
         }
 
     def tokenize(self, file_id: str) -> Dict:
-        """Tokenizes the split datasets corresponding to the given file ID using the formatter's tokenizer.
+        """Tokenizes the split datasets corresponding to the given file ID.
         Args:
             file_id (str): The unique identifier for the dataset file to be tokenized.
         Returns:
@@ -146,9 +155,12 @@ class PreprocessingService:
         test = _load_or_empty(test_path, train)
         validation = _load_or_empty(validation_path, train)
 
-        train_tokenized = self._formatter.tokenize(train)
-        test_tokenized = self._formatter.tokenize(test)
-        validation_tokenized = self._formatter.tokenize(validation)
+        tokenizer_service = self._tokenizer_service or TokenizerService(
+            model_name=self._model_name
+        )
+        train_tokenized = tokenizer_service.tokenize(train)
+        test_tokenized = tokenizer_service.tokenize(test)
+        validation_tokenized = tokenizer_service.tokenize(validation)
 
         tokenized_dir = self._build_path(file_id, "tokenized")
         tokenized_dir.mkdir(parents=True, exist_ok=True)

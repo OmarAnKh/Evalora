@@ -14,6 +14,10 @@ class PipelineRequest(BaseModel):
         default=PipelineModel.MISTRAL_7B_INSTRUCT_BNB_4BIT,
         description="Model identifier to use for tokenization.",
     )
+    train_ratio: float = Field(default=0.8, ge=0.0, le=1.0)
+    val_ratio: float = Field(default=0.1, ge=0.0, le=1.0)
+    test_ratio: float = Field(default=0.1, ge=0.0, le=1.0)
+    seed: int = Field(default=42, ge=0)
 
     @classmethod
     def as_form(
@@ -21,8 +25,18 @@ class PipelineRequest(BaseModel):
         model: PipelineModel = Form(
             default=PipelineModel.MISTRAL_7B_INSTRUCT_BNB_4BIT
         ),
+        train_ratio: float = Form(default=0.8),
+        val_ratio: float = Form(default=0.1),
+        test_ratio: float = Form(default=0.1),
+        seed: int = Form(default=42),
     ) -> "PipelineRequest":
-        return cls(model=model)
+        return cls(
+            model=model,
+            train_ratio=train_ratio,
+            val_ratio=val_ratio,
+            test_ratio=test_ratio,
+            seed=seed,
+        )
 
 
 class PipelineResponse(BaseModel):

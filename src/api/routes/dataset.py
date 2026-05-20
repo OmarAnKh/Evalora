@@ -1,11 +1,17 @@
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
+from src.schemas.pipeline import PipelineModel
 from src.services.dataset_upload_service import parse_jsonl_upload, save_jsonl_records
 from src.services.preprocessing_service import PreprocessingService
 
 router = APIRouter()
-preprocessing_service = PreprocessingService()
+
+
+def _get_preprocessing_service(model: PipelineModel | None = None) -> PreprocessingService:
+    if model is None:
+        return PreprocessingService()
+    return PreprocessingService(model_name=model.value)
 
 
 @router.post("/upload")
@@ -36,7 +42,7 @@ async def upload_dataset(file: UploadFile = File(...)) -> JSONResponse:
 @router.get("/format/{file_id}")
 def format_dataset(file_id: str) -> JSONResponse:
     try:
-        result = preprocessing_service.format(file_id)
+        result = _get_preprocessing_service().format(file_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 
@@ -44,9 +50,21 @@ def format_dataset(file_id: str) -> JSONResponse:
 
 
 @router.get("/split/{file_id}")
-def split_dataset(file_id: str) -> JSONResponse:
+def split_dataset(
+    file_id: str,
+    train_ratio: float = 0.8,
+    val_ratio: float = 0.1,
+    test_ratio: float = 0.1,
+    seed: int = 42,
+) -> JSONResponse:
     try:
-        result = preprocessing_service.split(file_id)
+        result = _get_preprocessing_service().split(
+            file_id,
+            train_ratio=train_ratio,
+            val_ratio=val_ratio,
+            test_ratio=test_ratio,
+            seed=seed,
+        )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     except ValueError as exc:
@@ -55,9 +73,12 @@ def split_dataset(file_id: str) -> JSONResponse:
     return JSONResponse(status_code=200, content=result)
 
 @router.get("/tokenize/{file_id}")
-def tokenize_dataset(file_id: str) -> JSONResponse:
+def tokenize_dataset(
+    file_id: str,
+    model: PipelineModel = PipelineModel.MISTRAL_7B_INSTRUCT_BNB_4BIT,
+) -> JSONResponse:
     try:
-        result = preprocessing_service.tokenize(file_id)
+        result = _get_preprocessing_service(model).tokenize(file_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     except ValueError as exc:
