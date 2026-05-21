@@ -5,6 +5,25 @@ from src.utils.json_utils import build_assistant_json
 
 def format_messages(sample: dict[str, Any], include_assistant: bool = True) -> dict[str, Any]:
     """Build chat-style messages for a single evaluation sample."""
+    existing_messages = sample.get("messages")
+    if existing_messages is not None:
+        messages = list(existing_messages)
+        if not include_assistant:
+            messages = [message for message in messages if message.get("role") != "assistant"]
+        return {
+            "messages": messages,
+            "score": sample.get("score"),
+            "reasoning": sample.get("reasoning"),
+        }
+
+    required_fields = ["task", "reference_answer", "answer", "rubric"]
+    missing = [field for field in required_fields if field not in sample]
+    if missing:
+        raise ValueError(
+            "Cannot format sample; missing raw fields "
+            f"{missing} and no preformatted 'messages' field was provided."
+        )
+
     system_prompt = (
         "You are an automated evaluation system.\n"
         "You must always return valid JSON only."
@@ -29,7 +48,7 @@ def format_messages(sample: dict[str, Any], include_assistant: bool = True) -> d
         "- output ONLY JSON\n"
         "- no markdown\n"
         "- no extra text\n"
-        "- score must be a number between 0 and 1\n"
+        "- score must be a numeric grade consistent with the rubric and training labels\n"
     )
 
     messages = [
