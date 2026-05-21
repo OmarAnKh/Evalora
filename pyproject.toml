@@ -12,6 +12,10 @@ dependencies = [
   "datasets>=4.8.5",
   "unsloth>=2025.11.1",
   "zipp==4.1.0",
+  "xformers>=0.0.35",
+  "bert-score>=0.3.13",
+  "scikit-learn>=1.4.0",
+  "tqdm>=4.67.3",
 ]
 
 [tool.uv]

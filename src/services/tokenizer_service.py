@@ -36,6 +36,12 @@ class TokenizerService:
         )
         return self._tokenizer(encoded, truncation=True)
 
-    def tokenize(self, dataset) -> Any:
+    def tokenize(self, dataset, keep_columns: list[str] | None = None) -> Any:
         """Tokenize a dataset of formatted prompts."""
-        return dataset.map(self.encode, remove_columns=dataset.column_names)
+        if keep_columns:
+            remove_columns = [
+                column for column in dataset.column_names if column not in keep_columns
+            ]
+        else:
+            remove_columns = dataset.column_names
+        return dataset.map(self.encode, remove_columns=remove_columns)

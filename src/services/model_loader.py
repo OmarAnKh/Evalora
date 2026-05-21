@@ -20,6 +20,16 @@ def load_model_and_tokenizer(
         max_seq_length=max_seq_length,
         load_in_4bit=load_in_4bit,
     )
+    model = FastLanguageModel.get_peft_model(
+        model,
+        r = 16,
+        target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"],
+        lora_alpha = 16,
+        lora_dropout = 0,
+        bias = "none",
+        use_gradient_checkpointing = True,
+        random_state = 3407,
+    )
     return model, tokenizer
 
 

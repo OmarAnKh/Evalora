@@ -94,19 +94,32 @@ class PreprocessingService:
         Raises:
             FileNotFoundError: If the formatted dataset file corresponding to the given file ID does not exist.
         """
-        file_path = self._build_path(file_id, "formatted")
+        file_path = self._build_path(file_id, "raw")
         dataset = load_dataset("json", data_files=str(file_path), split="train")
 
-        if len(dataset) < 2:
+        preprocessed = self._preprocessor.preprocess(dataset)
+
+        if len(preprocessed) < 2:
             raise ValueError("Need at least 2 records to split the dataset.")
 
         data = split_dataset(
-            dataset,
+            preprocessed,
             label_key="score",
             train_ratio=train_ratio,
             val_ratio=val_ratio,
             test_ratio=test_ratio,
             seed=seed,
+        )
+
+        train_formatted = data["train"].map(
+            self._formatter.format, remove_columns=data["train"].column_names
+        )
+        validation_formatted = data["validation"].map(
+            self._formatter.format, remove_columns=data["validation"].column_names
+        )
+        test_formatted = data["test"].map(
+            self._formatter.format_no_assistant,
+            remove_columns=data["test"].column_names,
         )
 
         splits_dir = self._build_path(file_id, "splits")
@@ -116,16 +129,16 @@ class PreprocessingService:
         test_output_path = splits_dir / f"{file_id}_test.jsonl"
         validation_output_path = splits_dir / f"{file_id}_validation.jsonl"
 
-        data["train"].to_json(str(train_output_path), orient="records", lines=True)
-        data["test"].to_json(str(test_output_path), orient="records", lines=True)
-        data["validation"].to_json(
+        train_formatted.to_json(str(train_output_path), orient="records", lines=True)
+        test_formatted.to_json(str(test_output_path), orient="records", lines=True)
+        validation_formatted.to_json(
             str(validation_output_path), orient="records", lines=True
         )
 
         return {
-            "train_records": len(data["train"]),
-            "test_records": len(data["test"]),
-            "validation_records": len(data["validation"]),
+            "train_records": len(train_formatted),
+            "test_records": len(test_formatted),
+            "validation_records": len(validation_formatted),
             "train_file_path": str(train_output_path),
             "test_file_path": str(test_output_path),
             "validation_file_path": str(validation_output_path),
@@ -158,8 +171,20 @@ class PreprocessingService:
         tokenizer_service = self._tokenizer_service or TokenizerService(
             model_name=self._model_name
         )
+
+        test_with_expected = test.map(
+            lambda row: {
+                "expected": {
+                    "score": row.get("score"),
+                    "reasoning": row.get("reasoning"),
+                }
+            }
+        )
+
         train_tokenized = tokenizer_service.tokenize(train)
-        test_tokenized = tokenizer_service.tokenize(test)
+        test_tokenized = tokenizer_service.tokenize(
+            test_with_expected, keep_columns=["expected"]
+        )
         validation_tokenized = tokenizer_service.tokenize(validation)
 
         tokenized_dir = self._build_path(file_id, "tokenized")
