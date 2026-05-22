@@ -174,7 +174,7 @@ class EvaluationService:
         baseline_output = None
         adapter_output = None
         if output_dir:
-            base_path = Path(output_dir)
+            base_path = Path(output_dir) / "predictions"
             baseline_output = str(base_path / "baseline_predictions.jsonl")
             adapter_output = str(base_path / "finetuned_predictions.jsonl")
 
@@ -218,7 +218,7 @@ class EvaluationService:
             "finetuned": finetuned,
         }
         if output_dir:
-            path = Path(output_dir) / "comparison_metrics.json"
+            path = Path(output_dir) / "metrics" / "comparison_metrics.json"
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("w", encoding="utf-8") as handle:
                 json.dump(result, handle, indent=2)
