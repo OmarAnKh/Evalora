@@ -1,0 +1,54 @@
+{
+  "upload_id": "2331f2a2-c144-46b1-8e34-4148dc8894a0",
+  "split": "test",
+  "baseline": {
+    "upload_id": "2331f2a2-c144-46b1-8e34-4148dc8894a0",
+    "split": "test",
+    "model_name": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
+    "model_variant": "baseline",
+    "num_examples": 20,
+    "metrics": {
+      "score": {
+        "accuracy": 0.2,
+        "rmse": 2.2683,
+        "mae": 1.8895,
+        "spearman": -0.0555,
+        "quadratic_weighted_kappa": 0.0431
+      },
+      "rationale": {
+        "bert_precision": 0.4593,
+        "bert_recall": 0.5933,
+        "bert_f1": 0.5171
+      },
+      "generation": {
+        "parse_error_rate": 0.0,
+        "parse_errors": 0
+      }
+    }
+  },
+  "finetuned": {
+    "upload_id": "2331f2a2-c144-46b1-8e34-4148dc8894a0",
+    "split": "test",
+    "model_name": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
+    "model_variant": "finetuned",
+    "num_examples": 20,
+    "metrics": {
+      "score": {
+        "accuracy": 0.2,
+        "rmse": 1.245,
+        "mae": 1.05,
+        "spearman": null,
+        "quadratic_weighted_kappa": 0.0
+      },
+      "rationale": {
+        "bert_precision": 0.9188,
+        "bert_recall": 0.9188,
+        "bert_f1": 0.9177
+      },
+      "generation": {
+        "parse_error_rate": 0.0,
+        "parse_errors": 0
+      }
+    }
+  }
+}
