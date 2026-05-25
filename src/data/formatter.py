@@ -1,97 +1,93 @@
-from unsloth import FastLanguageModel
+from typing import Any, Dict
+
+from src.utils.json_utils import build_assistant_json
+
+
+def format_messages(sample: dict[str, Any], include_assistant: bool = True) -> dict[str, Any]:
+    """Build chat-style messages for a single evaluation sample."""
+    existing_messages = sample.get("messages")
+    if existing_messages is not None:
+        messages = list(existing_messages)
+        if not include_assistant:
+            messages = [message for message in messages if message.get("role") != "assistant"]
+        return {
+            "messages": messages,
+            "score": sample.get("score"),
+            "reasoning": sample.get("reasoning"),
+        }
+
+    required_fields = ["task", "reference_answer", "answer", "rubric"]
+    missing = [field for field in required_fields if field not in sample]
+    if missing:
+        raise ValueError(
+            "Cannot format sample; missing raw fields "
+            f"{missing} and no preformatted 'messages' field was provided."
+        )
+
+    system_prompt = (
+        "You are an automated evaluation system.\n"
+        "You must always return valid JSON only."
+    )  
+    user_prompt = (
+        "Task:\n"
+        f"{sample['task']}\n\n"
+        "Reference Answer:\n"
+        f"{sample['reference_answer']}\n\n"
+        "Student Answer:\n"
+        f"{sample['answer']}\n\n"
+        "Rubric:\n"
+        f"{sample['rubric']}\n\n"
+        "You are an evaluation system.\n"
+        "Return ONLY valid JSON.\n\n"
+        "Output format:\n"
+        "{\n"
+        '  "score": 0.0,\n'
+        '  "reasoning": "short explanation"\n'
+        "}\n\n"
+        "Rules:\n"
+        "- output ONLY JSON\n"
+        "- no markdown\n"
+        "- no extra text\n"
+        "- score must be a numeric grade consistent with the rubric and training labels\n"
+    )
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+
+    if include_assistant:
+        assistant_prompt = build_assistant_json(
+            score=sample.get("score"),
+            reasoning=sample.get("reasoning"),
+        )
+        messages.append({"role": "assistant", "content": assistant_prompt})
+
+    return {
+        "messages": messages,
+        "score": sample.get("score"),
+        "reasoning": sample.get("reasoning"),
+    }
+
+
+def format_sample(sample: dict[str, Any]) -> dict[str, Any]:
+    """Format a single evaluation sample into a chat-style message list."""
+    return format_messages(sample, include_assistant=True)
+
+def format_sample_no_assistant(sample: dict[str, Any]) -> dict[str, Any]:
+    """Format a single evaluation sample into a chat-style message list without assistant response."""
+    return format_messages(sample, include_assistant=False)
 
 class Formatter:
-    def __init__(self, model_name: str = "unsloth/mistral-7b-instruct-v0.2-bnb-4bit") -> None:
-        """
-        Initializes the Formatter with a specified language model.
-        
-        Args:
-            model_name (str): The name of the pre-trained language model to use for formatting.
-        """
-        self.model, self.tokenizer = FastLanguageModel.from_pretrained(
-            model_name=model_name,
-            max_seq_length=2048,
-            load_in_4bit=True,
-        )
+    """Builds chat-style message prompts from structured evaluation samples."""
 
-    def format(self, example):
-        """Formats a single example into a structured prompt for evaluation. 
-        Args:
-            example (dict): A dictionary containing the fields 'task', 'reference_answer', 'answer
-            and 'rubric' that describe the evaluation sample.
-            
-            Returns:
-            dict: A dictionary with a single key 'prompt' containing the formatted prompt as a list of
-            messages for the language model.
-        """
-        
-        system_propmt = "You are an automated evaluation system."
-        user_prompt = f"""
-        Task : 
-        {example['task']}
-        
-        Reference Answer:
-        {example['reference_answer']}
-        
-        Student Answer:
-        {example['answer']}
-        
-        Runbric:
-        {example['rubric']}
-        
-         Evaluate the student answer and return:
-            - score
-            - reasoning
-        """
-        assistant_prompt = f"""
-            {{
-            "score": {example['score']},
-            "reasoning": "{example['reasoning']}"
-            }}
-            """
-        system = {"role": "system", "content": system_propmt}
-        user = {"role": "user", "content": user_prompt}
-        assistant = {"role": "assistant", "content": assistant_prompt}
-        prompt = [system, user, assistant]
+    def format(self, example: dict[str, Any]) -> dict[str, Any]:
+        return format_sample(example)
 
-        return {"prompt": prompt}
-
-    def reformat(self, dataset):
-        """
-        Reformats an entire dataset by applying the formatting to each example.
-        Args:
-            dataset (datasets.Dataset): A Hugging Face Dataset containing the evaluation samples to be reformatted.
-        Returns:
-            datasets.Dataset: A new Dataset where each example has been reformatted into a structured prompt."""
-        
-        reformatted = dataset.map(self.format, remove_columns=dataset.column_names)
-
-        return reformatted
-
-    def encode(self, example):
-        """Encodes a single example's prompt into token IDs using the tokenizer.
-        Args:
-            example (dict): A dictionary containing the 'prompt' key with the formatted prompt to be
-            tokenized.
-        Returns:
-            dict: A dictionary containing the tokenized input IDs and attention mask for the prompt.
-        """
-        prompt = (
-            example["prompt"] if "prompt" in example else self.format(example)["prompt"]
-        )
-        encoded = self.tokenizer.apply_chat_template(
-            prompt,
-            tokenize=False,
-            add_generation_prompt=False,
-        )
-
-        return self.tokenizer(encoded, truncation=True)
-
-    def tokenize(self, dataset):
-        """Tokenizes an entire dataset by applying the encoding to each example.
-        Args:
-            dataset (datasets.Dataset): A Hugging Face Dataset containing the evaluation samples to be tokenized
-        Returns:
-            datasets.Dataset: A new Dataset where each example has been tokenized into input IDs and attention masks.
-            """
-        return dataset.map(self.encode, remove_columns=dataset.column_names)
+    def format_no_assistant(self, example: dict[str, Any]) -> dict[str, Any]:
+        return format_sample_no_assistant(example)
+    
+    def reformat(self, dataset) -> Any:
+        """Reformat an entire dataset into chat-style message prompts."""
+        return dataset.map(self.format, remove_columns=dataset.column_names)
+    

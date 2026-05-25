@@ -16,7 +16,14 @@ async def run_pipeline(
     if not file.filename.lower().endswith(".jsonl"):
         raise HTTPException(status_code=400, detail="Only .jsonl files are supported.")
 
-    result = pipeline_service.run(file, payload.model)
+    result = pipeline_service.run(
+        file,
+        payload.model,
+        train_ratio=payload.train_ratio,
+        val_ratio=payload.val_ratio,
+        test_ratio=payload.test_ratio,
+        seed=payload.seed,
+    )
     if result.get("status") != "ok":
         return JSONResponse(status_code=422, content=result)
 

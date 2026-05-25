@@ -1,0 +1,55 @@
+experiment_name: autoeval-mistral-lora
+seed: 3407
+model_name: unsloth/mistral-7b-instruct-v0.2-bnb-4bit
+max_seq_length: 2048
+load_in_4bit: true
+
+output_dir: models/autoeval-mistral-lora
+logging_dir: experiments/autoeval-mistral-lora/logs
+report_to:
+  - none
+
+num_train_epochs: 3
+per_device_train_batch_size: 4
+per_device_eval_batch_size: 4
+gradient_accumulation_steps: 4
+learning_rate: 0.0002
+warmup_ratio: 0.03
+weight_decay: 0.01
+lr_scheduler_type: cosine
+optim: adamw_8bit
+bf16: true
+fp16: false
+packing: false
+eval_strategy: steps
+eval_steps: 50
+save_strategy: steps
+save_steps: 50
+save_total_limit: 3
+logging_steps: 50
+gradient_checkpointing: true
+max_grad_norm: 0.3
+dataloader_num_workers: 0
+dataset_num_proc: 1
+remove_unused_columns: true
+
+lora:
+  r: 16
+  alpha: 16
+  dropout: 0.0
+  bias: none
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  use_gradient_checkpointing: unsloth
+
+generation:
+  max_new_tokens: 256
+  temperature: 0.0
+  top_p: 1.0
+  do_sample: false
