@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+import yaml
+from io import StringIO
+from fastapi import UploadFile
 
 from src.schemas.training import TrainingRequest
 from src.training.config import TrainConfig
@@ -54,12 +57,23 @@ class TrainingService:
         config.dataset_num_proc = 1
         return config
 
-    def train(self, request: TrainingRequest) -> dict[str, Any]:
-        config_path = self._resolve(request.config_path)
-        if not config_path.exists():
-            raise FileNotFoundError(f"Training config not found: {config_path}")
+    def train(self, file: UploadFile | None, request: TrainingRequest) -> dict[str, Any]:
 
-        config = TrainConfig.from_yaml(config_path)
+        print(f"Received training request: {request}")
+        if file is not None:
+            # Read YAML config from uploaded file
+            file_content = file.file.read().decode("utf-8")
+            config_dict = yaml.safe_load(StringIO(file_content))
+            config = TrainConfig(**config_dict)
+            print(f"Loaded training config from uploaded file: {config}")
+        else:
+            print("No config file uploaded, using defaults and request overrides.")
+            # Use default config path as fallback
+            default_config_path = self.repo_root / "configs" / "train.yaml"
+            if not default_config_path.exists():
+                raise FileNotFoundError(f"Default training config not found: {default_config_path}")
+            config = TrainConfig.from_yaml(default_config_path)
+
         config = self._apply_request_overrides(config, request)
 
         # Import lazily so FastAPI can start without loading training/GPU libraries.

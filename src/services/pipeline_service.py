@@ -3,7 +3,6 @@ from typing import Any
 
 from fastapi import UploadFile
 
-from src.schemas.pipeline import PipelineModel
 from src.services.dataset_upload_service import parse_jsonl_upload, save_jsonl_records
 from src.services.preprocessing_service import PreprocessingService
 
@@ -16,7 +15,7 @@ class PipelineService:
     def run(
         self,
         file: UploadFile,
-        model: PipelineModel,
+        model: str = "unsloth/mistral-7b-instruct-v0.2-bnb-4bit",
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
         test_ratio: float = 0.1,
@@ -34,7 +33,7 @@ class PipelineService:
         upload_path = save_jsonl_records(records)
         upload_id = _extract_upload_id(upload_path)
 
-        preprocessing_service = PreprocessingService(model_name=model.value)
+        preprocessing_service = PreprocessingService(model_name=model)
 
         try:
             preprocessing_service.format(upload_id)
