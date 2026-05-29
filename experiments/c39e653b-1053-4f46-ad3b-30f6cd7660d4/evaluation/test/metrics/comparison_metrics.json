@@ -1,0 +1,54 @@
+{
+  "upload_id": "c39e653b-1053-4f46-ad3b-30f6cd7660d4",
+  "split": "test",
+  "baseline": {
+    "upload_id": "c39e653b-1053-4f46-ad3b-30f6cd7660d4",
+    "split": "test",
+    "model_name": "LiquidAI/LFM2.5-8B-A1B",
+    "model_variant": "baseline",
+    "num_examples": 20,
+    "metrics": {
+      "score": {
+        "accuracy": 0.0,
+        "rmse": 3.6742,
+        "mae": 3.6,
+        "spearman": null,
+        "quadratic_weighted_kappa": 0.0
+      },
+      "rationale": {
+        "bert_precision": 0.3573,
+        "bert_recall": 0.5906,
+        "bert_f1": 0.4444
+      },
+      "generation": {
+        "parse_error_rate": 1.0,
+        "parse_errors": 20
+      }
+    }
+  },
+  "finetuned": {
+    "upload_id": "c39e653b-1053-4f46-ad3b-30f6cd7660d4",
+    "split": "test",
+    "model_name": "LiquidAI/LFM2.5-8B-A1B",
+    "model_variant": "finetuned",
+    "num_examples": 20,
+    "metrics": {
+      "score": {
+        "accuracy": 0.65,
+        "rmse": 0.8944,
+        "mae": 0.5,
+        "spearman": -0.1906,
+        "quadratic_weighted_kappa": -0.1111
+      },
+      "rationale": {
+        "bert_precision": 0.7806,
+        "bert_recall": 0.7856,
+        "bert_f1": 0.7808
+      },
+      "generation": {
+        "parse_error_rate": 0.0,
+        "parse_errors": 0
+      }
+    }
+  }
+}

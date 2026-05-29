@@ -9,6 +9,7 @@ from huggingface_hub import HfApi, create_repo, upload_folder
 
 
 class HuggingFaceUploader:
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
     def __init__(
         self,
         hf_token: str | None = None,
@@ -30,9 +31,8 @@ class HuggingFaceUploader:
         Load metrics from comparison_metrics.json
         """
 
-        metrics_path = Path(
-            f"/home/omarankh/AutoEval/experiments/{upload_id}"
-            f"/evaluation/test/metrics/comparison_metrics.json"
+        metrics_path = (
+            self.PROJECT_ROOT / "experiments" / upload_id / "evaluation" / "test" / "metrics" / "comparison_metrics.json"
         )
 
         if not metrics_path.exists():
@@ -182,12 +182,12 @@ print(generated_text)
         Load LoRA config from adapter_config.json and trainer_state.json
         """
 
-        adapter_config_path = Path(
-            f"/home/omarankh/AutoEval/models/{upload_id}/lora/adapter_config.json"
+        adapter_config_path = (
+            self.PROJECT_ROOT / "models" / upload_id / "lora" / "adapter_config.json"
         )
 
-        trainer_state_path = Path(
-            f"/home/omarankh/AutoEval/models/{upload_id}/lora/trainer_state.json"
+        trainer_state_path = (
+            self.PROJECT_ROOT / "models" / upload_id / "lora" / "trainer_state.json"
         )
 
         if not adapter_config_path.exists():
@@ -227,8 +227,8 @@ print(generated_text)
         Upload trained LoRA experiment to HuggingFace Hub
         """
 
-        experiment_path = Path(
-            f"/home/omarankh/AutoEval/models/{upload_id}/lora"
+        experiment_path = (
+            self.PROJECT_ROOT / "models" / upload_id / "lora"
         )
 
         if not experiment_path.exists():
