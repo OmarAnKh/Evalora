@@ -1,0 +1,54 @@
+{
+  "upload_id": "7b3f8c6e-2465-4bc4-be91-f01a9f11bc40",
+  "split": "test",
+  "baseline": {
+    "upload_id": "7b3f8c6e-2465-4bc4-be91-f01a9f11bc40",
+    "split": "test",
+    "model_name": "unsloth/mistral-7b-instruct-v0.2-bnb-4bit",
+    "model_variant": "baseline",
+    "num_examples": 20,
+    "metrics": {
+      "score": {
+        "accuracy": 0.3,
+        "rmse": 1.858,
+        "mae": 1.46,
+        "spearman": 0.2879,
+        "quadratic_weighted_kappa": 0.0
+      },
+      "rationale": {
+        "bert_precision": 0.5016,
+        "bert_recall": 0.599,
+        "bert_f1": 0.5448
+      },
+      "generation": {
+        "parse_error_rate": 0.0,
+        "parse_errors": 0
+      }
+    }
+  },
+  "finetuned": {
+    "upload_id": "7b3f8c6e-2465-4bc4-be91-f01a9f11bc40",
+    "split": "test",
+    "model_name": "unsloth/mistral-7b-instruct-v0.2-bnb-4bit",
+    "model_variant": "finetuned",
+    "num_examples": 20,
+    "metrics": {
+      "score": {
+        "accuracy": 0.2,
+        "rmse": 1.8974,
+        "mae": 1.6,
+        "spearman": -0.251,
+        "quadratic_weighted_kappa": -0.194
+      },
+      "rationale": {
+        "bert_precision": 0.9112,
+        "bert_recall": 0.9183,
+        "bert_f1": 0.9124
+      },
+      "generation": {
+        "parse_error_rate": 0.0,
+        "parse_errors": 0
+      }
+    }
+  }
+}

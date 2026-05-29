@@ -10,10 +10,7 @@ class PipelineModel(str, Enum):
 
 
 class PipelineRequest(BaseModel):
-    model: PipelineModel = Field(
-        default=PipelineModel.MISTRAL_7B_INSTRUCT_BNB_4BIT,
-        description="Model identifier to use for tokenization.",
-    )
+    model: str = Field(default="unsloth/mistral-7b-instruct-v0.2-bnb-4bit")
     train_ratio: float = Field(default=0.8, ge=0.0, le=1.0)
     val_ratio: float = Field(default=0.1, ge=0.0, le=1.0)
     test_ratio: float = Field(default=0.1, ge=0.0, le=1.0)
@@ -22,8 +19,8 @@ class PipelineRequest(BaseModel):
     @classmethod
     def as_form(
         cls,
-        model: PipelineModel = Form(
-            default=PipelineModel.MISTRAL_7B_INSTRUCT_BNB_4BIT
+        model: str = Form(
+            default="unsloth/mistral-7b-instruct-v0.2-bnb-4bit"
         ),
         train_ratio: float = Form(default=0.8),
         val_ratio: float = Form(default=0.1),

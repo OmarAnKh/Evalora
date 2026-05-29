@@ -1,21 +1,40 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.training.config import DEFAULT_MODEL_NAME
 
+from fastapi import Form
 
 class TrainingRequest(BaseModel):
-    """Start a LoRA fine-tuning run for an uploaded dataset id."""
+    upload_id: str
+    model_name: str
+    experiment_name: str | None = None
+    num_train_epochs: float = 3
+    learning_rate: float = 0.0002
+    per_device_train_batch_size: int = 1
+    gradient_accumulation_steps: int = 4
 
-    upload_id: str = Field(..., description="Dataset/experiment id produced by /pipeline/run")
-    config_path: str = Field(default="configs/train.yaml")
-    model_name: str = Field(default=DEFAULT_MODEL_NAME)
-    experiment_name: str | None = Field(default=None)
-    num_train_epochs: float = Field(default=3.0, gt=0, le=20)
-    learning_rate: float = Field(default=0.0002, gt=0, le=0.01)
-    per_device_train_batch_size: int = Field(default=1, gt=0, le=16)
-    gradient_accumulation_steps: int = Field(default=4, gt=0, le=64)
+    @classmethod
+    def as_form(
+        cls,
+        upload_id: str = Form(...),
+        model_name: str = Form(...),
+        experiment_name: str | None = Form(None),
+        num_train_epochs: float = Form(3),
+        learning_rate: float = Form(0.0002),
+        per_device_train_batch_size: int = Form(1),
+        gradient_accumulation_steps: int = Form(4),
+    ):
+        return cls(
+            upload_id=upload_id,
+            model_name=model_name,
+            experiment_name=experiment_name,
+            num_train_epochs=num_train_epochs,
+            learning_rate=learning_rate,
+            per_device_train_batch_size=per_device_train_batch_size,
+            gradient_accumulation_steps=gradient_accumulation_steps,
+        )
 
 
 class TrainingResponse(BaseModel):

@@ -1,17 +1,16 @@
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
-from src.schemas.pipeline import PipelineModel
 from src.services.dataset_upload_service import parse_jsonl_upload, save_jsonl_records
 from src.services.preprocessing_service import PreprocessingService
 
 router = APIRouter()
 
 
-def _get_preprocessing_service(model: PipelineModel | None = None) -> PreprocessingService:
+def _get_preprocessing_service(model: str | None = None) -> PreprocessingService:
     if model is None:
         return PreprocessingService()
-    return PreprocessingService(model_name=model.value)
+    return PreprocessingService(model_name=model)
 
 
 @router.post("/upload")
@@ -75,7 +74,7 @@ def split_dataset(
 @router.get("/tokenize/{file_id}")
 def tokenize_dataset(
     file_id: str,
-    model: PipelineModel = PipelineModel.MISTRAL_7B_INSTRUCT_BNB_4BIT,
+    model: str = "unsloth/mistral-7b-instruct-v0.2-bnb-4bit",
 ) -> JSONResponse:
     try:
         result = _get_preprocessing_service(model).tokenize(file_id)
