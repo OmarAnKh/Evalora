@@ -8,8 +8,10 @@ from src.training.trainer import run_training
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Fine-tune AutoEval with LoRA.")
-    parser.add_argument("--config", required=True, help="Path to a YAML training config.")
+    parser = argparse.ArgumentParser(description="Fine-tune Evalora with LoRA.")
+    parser.add_argument(
+        "--config", required=True, help="Path to a YAML training config."
+    )
     return parser.parse_args()
 
 

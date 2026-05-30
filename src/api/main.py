@@ -7,7 +7,7 @@ from src.api.routes.evaluation import router as evaluation_router
 from src.api.routes.training import router as training_router
 from src.api.routes.upload_model import router as upload_router
 
-app = FastAPI(title="AutoEval Dataset API")
+app = FastAPI(title="Evalora Dataset API")
 
 app.add_middleware(
     CORSMiddleware,

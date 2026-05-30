@@ -152,6 +152,33 @@ export default function PipelineForm({ onResult, apiBaseUrl }: Props) {
             </>
           )}
         </div>
+        <div className="mt-4">
+          <p style={{ color: 'rgba(150,155,185,0.6)', fontSize: '0.7rem', marginBottom: 8 }}>
+            Example JSONL record (one per line):
+          </p>
+          <pre
+            style={{
+              background: 'rgba(10,10,16,0.7)',
+              border: '1px solid rgba(180,180,220,0.08)',
+              borderRadius: 12,
+              padding: '12px 14px',
+              fontSize: '0.68rem',
+              color: 'rgba(170,175,205,0.75)',
+              lineHeight: 1.45,
+              overflowX: 'auto',
+            }}
+          >{`{
+  "task": "Grade the response to the customer email.",
+  "reference_answer": "We apologize for the delay and offer a replacement within 3 business days.",
+  "answer": "Sorry for the wait. We can send a replacement this week.",
+  "rubric": [
+    {"criterion": "Apology", "description": "Must apologize clearly", "weight": 0.5},
+    {"criterion": "Resolution", "description": "Offer replacement with a timeline", "weight": 0.5}
+  ],
+  "score": 3,
+  "reasoning": "Includes an apology and a replacement, but the timeline is less specific than 3 business days."
+}`}</pre>
+        </div>
       </div>
 
       {/* Core Config */}

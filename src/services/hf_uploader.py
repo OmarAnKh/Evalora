@@ -10,6 +10,7 @@ from huggingface_hub import HfApi, create_repo, upload_folder
 
 class HuggingFaceUploader:
     PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
     def __init__(
         self,
         hf_token: str | None = None,
@@ -18,10 +19,7 @@ class HuggingFaceUploader:
         self.hf_token = hf_token or os.getenv("HF_TOKEN")
 
         if not self.hf_token:
-            raise ValueError(
-                "HF_TOKEN not found. "
-                "Set it as environment variable."
-            )
+            raise ValueError("HF_TOKEN not found. " "Set it as environment variable.")
 
         self.api = HfApi(token=self.hf_token)
         self.hf_username = hf_username
@@ -32,13 +30,17 @@ class HuggingFaceUploader:
         """
 
         metrics_path = (
-            self.PROJECT_ROOT / "experiments" / upload_id / "evaluation" / "test" / "metrics" / "comparison_metrics.json"
+            self.PROJECT_ROOT
+            / "experiments"
+            / upload_id
+            / "evaluation"
+            / "test"
+            / "metrics"
+            / "comparison_metrics.json"
         )
 
         if not metrics_path.exists():
-            raise FileNotFoundError(
-                f"Metrics file not found: {metrics_path}"
-            )
+            raise FileNotFoundError(f"Metrics file not found: {metrics_path}")
 
         with metrics_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -61,11 +63,11 @@ class HuggingFaceUploader:
         metadata: dict,
     ) -> None:
         """
-        Automatically generate README.md    
+        Automatically generate README.md
         """
 
         readme = readme = f"""
-# AutoEval LoRA Model
+# Evalora LoRA Model
 
 ## Experiment Information
 
@@ -175,8 +177,7 @@ print(generated_text)
 
         with metadata_path.open("w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
-            
-            
+
     def load_adapter_config(self, upload_id: str) -> dict:
         """
         Load LoRA config from adapter_config.json and trainer_state.json
@@ -191,9 +192,7 @@ print(generated_text)
         )
 
         if not adapter_config_path.exists():
-            raise FileNotFoundError(
-                f"Adapter config not found: {adapter_config_path}"
-            )
+            raise FileNotFoundError(f"Adapter config not found: {adapter_config_path}")
 
         with adapter_config_path.open("r", encoding="utf-8") as f:
             adapter_config = json.load(f)
@@ -211,12 +210,12 @@ print(generated_text)
                 trainer_state = json.load(f)
 
             result["epochs"] = trainer_state.get("num_train_epochs")
-            result["learning_rate"] = trainer_state.get("best_model_checkpoint") and \
-                trainer_state.get("log_history", [{}])[-1].get("learning_rate")
+            result["learning_rate"] = trainer_state.get(
+                "best_model_checkpoint"
+            ) and trainer_state.get("log_history", [{}])[-1].get("learning_rate")
 
         return result
-    
-    
+
     def upload_experiment(
         self,
         upload_id: str,
@@ -227,19 +226,15 @@ print(generated_text)
         Upload trained LoRA experiment to HuggingFace Hub
         """
 
-        experiment_path = (
-            self.PROJECT_ROOT / "models" / upload_id / "lora"
-        )
+        experiment_path = self.PROJECT_ROOT / "models" / upload_id / "lora"
 
         if not experiment_path.exists():
-            raise FileNotFoundError(
-                f"Experiment path not found: {experiment_path}"
-            )
+            raise FileNotFoundError(f"Experiment path not found: {experiment_path}")
 
         comparison_metrics = self.load_comparison_metrics(upload_id)
         adapter_config = self.load_adapter_config(upload_id)
 
-        repo_name = f"autoeval-{upload_id}"
+        repo_name = f"Evalora-{upload_id}"
         repo_id = f"{self.hf_username}/{repo_name}"
 
         metadata = {
@@ -247,18 +242,14 @@ print(generated_text)
             "dataset_name": dataset_name or "N/A",
             "model_name": comparison_metrics["model_name"],
             "timestamp": datetime.utcnow().isoformat(),
-
             "accuracy": comparison_metrics["accuracy"],
             "mae": comparison_metrics["mae"],
             "qwk": comparison_metrics["qwk"],
             "bertscore": comparison_metrics["bertscore"],
-
             "epochs": adapter_config["epochs"],
             "learning_rate": adapter_config["learning_rate"],
-
             "lora_r": adapter_config["lora_r"],
             "lora_alpha": adapter_config["lora_alpha"],
-
             "repo_id": repo_id,
         }
 
@@ -277,7 +268,7 @@ print(generated_text)
             token=self.hf_token,
             repo_type="model",
             exist_ok=True,
-            private=private,        # ← private/public flag
+            private=private,  # ← private/public flag
         )
 
         upload_folder(
@@ -285,7 +276,6 @@ print(generated_text)
             folder_path=str(experiment_path),
             token=self.hf_token,
             repo_type="model",
-
             ignore_patterns=[
                 "checkpoint-*",
                 "*.pth",

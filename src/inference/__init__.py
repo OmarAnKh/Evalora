@@ -1,3 +1,3 @@
-from src.inference.predictor import AutoEvalPredictor
+from src.inference.predictor import EvaloraPredictor
 
-__all__ = ["AutoEvalPredictor"]
+__all__ = ["EvaloraPredictor"]

@@ -12,7 +12,7 @@ from src.training.config import GenerationConfig
 from src.training.modeling import load_base_model_and_tokenizer, prepare_for_inference
 
 
-class AutoEvalPredictor:
+class EvaloraPredictor:
     """Generate rubric-based score/rationale predictions from a base or LoRA model."""
 
     def __init__(
@@ -42,7 +42,9 @@ class AutoEvalPredictor:
         if messages is None:
             messages = format_sample_no_assistant(sample)["messages"]
         else:
-            messages = [message for message in messages if message.get("role") != "assistant"]
+            messages = [
+                message for message in messages if message.get("role") != "assistant"
+            ]
 
         return self.tokenizer.apply_chat_template(
             messages,
@@ -64,7 +66,9 @@ class AutoEvalPredictor:
             )
         generated_ids = outputs[0][inputs["input_ids"].shape[-1] :]
         text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
-        return parse_prediction(text, min_score=self.min_score, max_score=self.max_score)
+        return parse_prediction(
+            text, min_score=self.min_score, max_score=self.max_score
+        )
 
     def predict_many(self, samples: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return [self.predict(sample) for sample in samples]

@@ -1,11 +1,11 @@
-experiment_name: autoeval-mistral-lora
+experiment_name: Evalora-mistral-lora
 seed: 3407
 model_name: unsloth/mistral-7b-instruct-v0.2-bnb-4bit
 max_seq_length: 2048
 load_in_4bit: true
 
-output_dir: models/autoeval-mistral-lora
-logging_dir: experiments/autoeval-mistral-lora/logs
+output_dir: models/Evalora-mistral-lora
+logging_dir: experiments/Evalora-mistral-lora/logs
 report_to:
   - none
 
