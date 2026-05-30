@@ -1,0 +1,398 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --chrome-gradient: linear-gradient(
+    135deg,
+    #6e6e6e 0%,
+    #c8c8c8 18%,
+    #ffffff 28%,
+    #e0e0e0 38%,
+    #b0b0b0 50%,
+    #d8d8d8 62%,
+    #ffffff 72%,
+    #c0c0c0 82%,
+    #888888 100%
+  );
+  --chrome-subtle: linear-gradient(
+    135deg,
+    #4a4a4a 0%,
+    #9a9a9a 20%,
+    #d4d4d4 35%,
+    #ffffff 48%,
+    #c8c8c8 60%,
+    #909090 75%,
+    #bfbfbf 90%,
+    #6a6a6a 100%
+  );
+  --glass-bg: rgba(15, 15, 20, 0.75);
+  --glass-border: rgba(200, 200, 220, 0.12);
+  --glass-border-bright: rgba(255, 255, 255, 0.2);
+  --surface-1: rgba(22, 22, 30, 0.9);
+  --surface-2: rgba(30, 30, 42, 0.85);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #080808;
+  color: #e8e8e8;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Chrome text effect */
+.chrome-text {
+  background: var(--chrome-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(200, 200, 255, 0.3));
+}
+
+.chrome-text-subtle {
+  background: var(--chrome-subtle);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glass card */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 4px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-card-bright {
+  background: rgba(20, 22, 32, 0.88);
+  border: 1px solid var(--glass-border-bright);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 8px 60px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(180, 180, 220, 0.04);
+}
+
+/* Chrome button */
+.chrome-btn {
+  background: linear-gradient(
+    180deg,
+    rgba(220, 220, 230, 0.15) 0%,
+    rgba(140, 140, 160, 0.08) 50%,
+    rgba(80, 80, 100, 0.12) 100%
+  );
+  border: 1px solid rgba(200, 200, 220, 0.25);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.chrome-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.06),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.chrome-btn:hover::before {
+  left: 100%;
+}
+
+.chrome-btn:hover {
+  border-color: rgba(220, 220, 240, 0.4);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 20px rgba(180, 180, 255, 0.05);
+  background: linear-gradient(
+    180deg,
+    rgba(240, 240, 255, 0.18) 0%,
+    rgba(160, 160, 190, 0.1) 50%,
+    rgba(100, 100, 130, 0.14) 100%
+  );
+}
+
+.chrome-btn-primary {
+  background: linear-gradient(
+    180deg,
+    rgba(180, 185, 210, 0.25) 0%,
+    rgba(120, 125, 160, 0.18) 40%,
+    rgba(80, 85, 115, 0.22) 100%
+  );
+  border: 1px solid rgba(200, 205, 240, 0.35);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    0 0 30px rgba(150, 160, 220, 0.08);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.chrome-btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.chrome-btn-primary:hover::before {
+  left: 100%;
+}
+
+.chrome-btn-primary:hover {
+  border-color: rgba(220, 225, 255, 0.5);
+  box-shadow:
+    0 6px 32px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 40px rgba(160, 170, 240, 0.12);
+  transform: translateY(-1px);
+}
+
+.chrome-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Input fields */
+.chrome-input {
+  background: rgba(12, 12, 18, 0.8);
+  border: 1px solid rgba(180, 180, 200, 0.18);
+  color: #e8e8f0;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.chrome-input::placeholder {
+  color: rgba(180, 180, 200, 0.35);
+}
+
+.chrome-input:focus {
+  outline: none;
+  border-color: rgba(200, 205, 240, 0.4);
+  background: rgba(15, 15, 22, 0.9);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.35),
+    0 0 0 3px rgba(180, 185, 240, 0.06);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 14, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(130, 130, 160, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 160, 200, 0.4);
+}
+
+/* Animated background grid */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(180, 180, 220, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 180, 220, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Splash animations */
+@keyframes splash-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes splash-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes slogan-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.3em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.15em;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.splash-animate-in {
+  animation: splash-fade-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-animate-out {
+  animation: splash-fade-out 0.6s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.slogan-animate {
+  animation: slogan-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+
+.chrome-shimmer {
+  background: linear-gradient(
+    90deg,
+    #666 0%,
+    #ccc 20%,
+    #fff 35%,
+    #eee 50%,
+    #fff 65%,
+    #bbb 80%,
+    #777 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3.5s linear infinite;
+}
+
+.float-animation {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Section divider */
+.chrome-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(180, 180, 220, 0.12),
+    rgba(220, 220, 255, 0.25),
+    rgba(180, 180, 220, 0.12),
+    transparent
+  );
+}
+
+/* Label */
+.chrome-label {
+  color: rgba(180, 185, 210, 0.75);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Toggle */
+.chrome-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Metric card */
+.metric-card {
+  background: rgba(18, 18, 26, 0.8);
+  border: 1px solid rgba(180, 180, 220, 0.1);
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Success gradient border */
+.success-glow {
+  box-shadow:
+    0 0 0 1px rgba(100, 200, 150, 0.2),
+    0 4px 40px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(80, 180, 120, 0.04);
+}
+
+/* Page transition */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-animate-in {
+  animation: page-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

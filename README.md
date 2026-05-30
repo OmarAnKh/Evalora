@@ -1,9 +1,9 @@
-# AutoEval
+# Evalora
 
 ## Project Description
-AutoEval is a domain-agnostic, instruction-tuned evaluation system that turns rubric-based scoring into a reusable ML pipeline. Users upload a JSONL dataset with six fields: `task`, `reference_answer`, `answer`, `rubric` (a list of weighted criteria), `score`, and `reasoning`. AutoEval fine-tunes a Mistral-7B-Instruct model using LoRA so it can act as a scoring evaluator. The trained evaluator outputs both a numeric score and a natural language rationale.
+Evalora is a domain-agnostic, instruction-tuned evaluation system that turns rubric-based scoring into a reusable ML pipeline. Users upload a JSONL dataset with six fields: `task`, `reference_answer`, `answer`, `rubric` (a list of weighted criteria), `score`, and `reasoning`. Evalora fine-tunes a Mistral-7B-Instruct model using LoRA so it can act as a scoring evaluator. The trained evaluator outputs both a numeric score and a natural language rationale.
 
-Manual rubric scoring is expensive, slow, and highly domain-specific. AutoEval addresses this by instruction-tuning a general-purpose LLM to follow rubric constraints and generate consistent scores with explanations. Rationales provide transparency and make the model useful for audit and review.
+Manual rubric scoring is expensive, slow, and highly domain-specific. Evalora addresses this by instruction-tuning a general-purpose LLM to follow rubric constraints and generate consistent scores with explanations. Rationales provide transparency and make the model useful for audit and review.
 
 ## Key Features
 - Domain-agnostic evaluation across tasks and industries
@@ -16,7 +16,7 @@ Manual rubric scoring is expensive, slow, and highly domain-specific. AutoEval a
 
 ## Project Structure
 ```
-AUTOEVAL/
+Evalora/
 ├─ data/                   # Raw, processed, and split datasets
 │  ├─ raw/
 │  ├─ processed/
@@ -92,6 +92,24 @@ uv sync
 ```bash
 uvicorn src.api.main:app --reload
 ```
+
+## Frontend
+The UI lives in the interface/ folder and talks to the FastAPI backend.
+
+**Install dependencies**
+```bash
+cd interface
+npm install
+```
+
+**Run the dev server**
+```bash
+npm run dev
+```
+
+**Connect to the API**
+- Keep the backend running (for example: http://localhost:8004).
+- Set the API URL in the header input, or export VITE_API_BASE_URL before starting the dev server.
 
 **Upload**
 ```

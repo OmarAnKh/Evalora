@@ -7,9 +7,13 @@ from src.services.evaluation import EvaluationService
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Evaluate baseline and LoRA AutoEval models.")
+    parser = argparse.ArgumentParser(
+        description="Evaluate baseline and LoRA Evalora models."
+    )
     parser.add_argument("--upload-id", required=True)
-    parser.add_argument("--model-name", default="unsloth/mistral-7b-instruct-v0.2-bnb-4bit")
+    parser.add_argument(
+        "--model-name", default="unsloth/mistral-7b-instruct-v0.2-bnb-4bit"
+    )
     parser.add_argument("--adapter-path", default=None)
     parser.add_argument("--split", default="test")
     parser.add_argument("--output-dir", default=None)

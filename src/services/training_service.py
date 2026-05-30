@@ -21,19 +21,33 @@ class TrainingService:
         return path if path.is_absolute() else self.repo_root / path
 
     def _split_file(self, upload_id: str, split: str) -> str:
-        path = self.repo_root / "data" / "splits" / upload_id / f"{upload_id}_{split}.jsonl"
+        path = (
+            self.repo_root
+            / "data"
+            / "splits"
+            / upload_id
+            / f"{upload_id}_{split}.jsonl"
+        )
         if not path.exists():
             raise FileNotFoundError(f"Missing {split} split file: {path}")
         return str(path)
 
-    def _apply_request_overrides(self, config: TrainConfig, request: TrainingRequest) -> TrainConfig:
+    def _apply_request_overrides(
+        self, config: TrainConfig, request: TrainingRequest
+    ) -> TrainConfig:
         config.train_file = self._split_file(request.upload_id, "train")
         config.validation_file = self._split_file(request.upload_id, "validation")
         config.test_file = self._split_file(request.upload_id, "test")
         config.output_dir = str(self.repo_root / "models" / request.upload_id / "lora")
-        config.experiment_name = request.experiment_name or f"autoeval-{request.upload_id}"
+        config.experiment_name = (
+            request.experiment_name or f"Evalora-{request.upload_id}"
+        )
         config.logging_dir = str(
-            self.repo_root / "experiments" / request.upload_id / config.experiment_name / "logs"
+            self.repo_root
+            / "experiments"
+            / request.upload_id
+            / config.experiment_name
+            / "logs"
         )
 
         override_fields = [
@@ -57,7 +71,9 @@ class TrainingService:
         config.dataset_num_proc = 1
         return config
 
-    def train(self, file: UploadFile | None, request: TrainingRequest) -> dict[str, Any]:
+    def train(
+        self, file: UploadFile | None, request: TrainingRequest
+    ) -> dict[str, Any]:
 
         print(f"Received training request: {request}")
         if file is not None:
@@ -71,7 +87,9 @@ class TrainingService:
             # Use default config path as fallback
             default_config_path = self.repo_root / "configs" / "train.yaml"
             if not default_config_path.exists():
-                raise FileNotFoundError(f"Default training config not found: {default_config_path}")
+                raise FileNotFoundError(
+                    f"Default training config not found: {default_config_path}"
+                )
             config = TrainConfig.from_yaml(default_config_path)
 
         config = self._apply_request_overrides(config, request)

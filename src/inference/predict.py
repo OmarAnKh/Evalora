@@ -6,12 +6,14 @@ from pathlib import Path
 
 from datasets import load_dataset
 
-from src.inference import AutoEvalPredictor
+from src.inference import EvaloraPredictor
 from src.training.config import GenerationConfig
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run AutoEval model inference on JSONL data.")
+    parser = argparse.ArgumentParser(
+        description="Run Evalora model inference on JSONL data."
+    )
     parser.add_argument("--model-name", required=True)
     parser.add_argument("--input-file", required=True)
     parser.add_argument("--output-file", required=True)
@@ -26,7 +28,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     dataset = load_dataset("json", data_files=args.input_file, split="train")
-    predictor = AutoEvalPredictor(
+    predictor = EvaloraPredictor(
         model_name=args.model_name,
         adapter_path=args.adapter_path,
         max_seq_length=args.max_seq_length,

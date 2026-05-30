@@ -39,7 +39,7 @@ class GenerationConfig:
 
 @dataclass(slots=True)
 class TrainConfig:
-    experiment_name: str = "autoeval-lora"
+    experiment_name: str = "Evalora-lora"
     seed: int = 3407
     model_name: str = DEFAULT_MODEL_NAME
     max_seq_length: int = 2048
@@ -47,8 +47,8 @@ class TrainConfig:
     train_file: str = ""
     validation_file: str | None = None
     test_file: str | None = None
-    output_dir: str = "models/autoeval-lora"
-    logging_dir: str = "experiments/autoeval-lora/logs"
+    output_dir: str = "models/Evalora-lora"
+    logging_dir: str = "experiments/Evalora-lora/logs"
     report_to: list[str] = field(default_factory=lambda: ["none"])
     num_train_epochs: float = 3.0
     per_device_train_batch_size: int = 4

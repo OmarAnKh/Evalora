@@ -1,5 +1,5 @@
 [project]
-name = "autoeval"
+name = "Evalora"
 version = "0.1.0"
 description = "Rubric-based evaluator training pipeline."
 readme = "README.md"

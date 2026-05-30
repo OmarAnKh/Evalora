@@ -20,7 +20,13 @@ class EvaluationService:
         self.repo_root = repo_root or Path(__file__).resolve().parents[2]
 
     def _split_path(self, upload_id: str, split: str) -> Path:
-        return self.repo_root / "data" / "splits" / upload_id / f"{upload_id}_{split}.jsonl"
+        return (
+            self.repo_root
+            / "data"
+            / "splits"
+            / upload_id
+            / f"{upload_id}_{split}.jsonl"
+        )
 
     def _adapter_path(self, upload_id: str) -> Path:
         path = self.repo_root / "models" / upload_id / "lora"
@@ -53,7 +59,9 @@ class EvaluationService:
         use_kappa: bool = True,
         use_bertscore: bool = True,
     ) -> dict[str, Any]:
-        return evaluate(expected, predicted, use_kappa=use_kappa, use_bertscore=use_bertscore)
+        return evaluate(
+            expected, predicted, use_kappa=use_kappa, use_bertscore=use_bertscore
+        )
 
     def evaluate_model_on_split(
         self,
@@ -72,10 +80,10 @@ class EvaluationService:
         if not split_path.exists():
             raise FileNotFoundError(f"Split file not found: {split_path}")
 
-        from src.inference import AutoEvalPredictor
+        from src.inference import EvaloraPredictor
 
         dataset = load_dataset("json", data_files=str(split_path), split="train")
-        predictor = AutoEvalPredictor(
+        predictor = EvaloraPredictor(
             model_name=model_name,
             adapter_path=adapter_path,
             max_seq_length=max_seq_length,
