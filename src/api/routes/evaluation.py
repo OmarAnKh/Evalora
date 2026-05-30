@@ -79,27 +79,27 @@ def compare_baseline_and_finetuned(request: ComparisonEvaluationRequest):
         _raise_http(exc)
 
 
-@router.post("/evaluate")
-def evaluate_models(request: EvaluationResultRequest):
-    """Generic endpoint: set use_finetuned=true to load models/{upload_id}/lora."""
-    try:
-        if request.use_finetuned:
-            return service.evaluate_finetuned_on_split(
-                upload_id=request.upload_id,
-                model_name=request.model_name,
-                split=request.split,
-                use_kappa=request.use_cohen_kappa,
-                use_bertscore=request.use_bertscore,
-                output_file=_prediction_file(request.upload_id, request.split, "finetuned"),
-            )
-        return service.evaluate_model_on_split(
-            upload_id=request.upload_id,
-            model_name=request.model_name,
-            adapter_path=None,
-            split=request.split,
-            use_kappa=request.use_cohen_kappa,
-            use_bertscore=request.use_bertscore,
-            output_file=_prediction_file(request.upload_id, request.split, "baseline"),
-        )
-    except Exception as exc:
-        _raise_http(exc)
+# @router.post("/evaluate")
+# def evaluate_models(request: EvaluationResultRequest):
+#     """Generic endpoint: set use_finetuned=true to load models/{upload_id}/lora."""
+#     try:
+#         if request.use_finetuned:
+#             return service.evaluate_finetuned_on_split(
+#                 upload_id=request.upload_id,
+#                 model_name=request.model_name,
+#                 split=request.split,
+#                 use_kappa=request.use_cohen_kappa,
+#                 use_bertscore=request.use_bertscore,
+#                 output_file=_prediction_file(request.upload_id, request.split, "finetuned"),
+#             )
+#         return service.evaluate_model_on_split(
+#             upload_id=request.upload_id,
+#             model_name=request.model_name,
+#             adapter_path=None,
+#             split=request.split,
+#             use_kappa=request.use_cohen_kappa,
+#             use_bertscore=request.use_bertscore,
+#             output_file=_prediction_file(request.upload_id, request.split, "baseline"),
+#         )
+#     except Exception as exc:
+#         _raise_http(exc)

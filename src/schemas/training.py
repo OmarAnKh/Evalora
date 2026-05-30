@@ -8,7 +8,7 @@ from fastapi import Form
 
 class TrainingRequest(BaseModel):
     upload_id: str
-    model_name: str
+    model_name: str = DEFAULT_MODEL_NAME
     experiment_name: str | None = None
     num_train_epochs: float = 3
     learning_rate: float = 0.0002
@@ -19,7 +19,7 @@ class TrainingRequest(BaseModel):
     def as_form(
         cls,
         upload_id: str = Form(...),
-        model_name: str = Form(...),
+        model_name: str = Form(DEFAULT_MODEL_NAME),
         experiment_name: str | None = Form(None),
         num_train_epochs: float = Form(3),
         learning_rate: float = Form(0.0002),

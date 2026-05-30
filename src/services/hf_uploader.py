@@ -45,14 +45,14 @@ class HuggingFaceUploader:
 
         finetuned = data["finetuned"]
         score_metrics = finetuned["metrics"]["score"]
-        rationale_metrics = finetuned["metrics"]["rationale"]
+        rationale_metrics = finetuned["metrics"].get("rationale", {})
 
         return {
             "model_name": finetuned["model_name"],
             "accuracy": score_metrics["accuracy"],
             "mae": score_metrics["mae"],
             "qwk": score_metrics["quadratic_weighted_kappa"],
-            "bertscore": rationale_metrics["bert_f1"],
+            "bertscore": rationale_metrics.get("bert_f1"),
         }
 
     def create_readme(

@@ -12,7 +12,7 @@ class BaselineEvaluationRequest(BaseModel):
     model_name: str = Field(default=DEFAULT_MODEL_NAME)
     split: str = Field(default="test")
     use_cohen_kappa: bool = Field(default=True)
-    use_bertscore: bool = Field(default=False)
+    use_bertscore: bool = Field(default=True)
 
 
 class FinetunedEvaluationRequest(BaselineEvaluationRequest):
