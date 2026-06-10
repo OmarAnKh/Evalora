@@ -35,6 +35,7 @@ class TrainingService:
     def _apply_request_overrides(
         self, config: TrainConfig, request: TrainingRequest
     ) -> TrainConfig:
+        """Override config fields with values from the training request."""
         config.train_file = self._split_file(request.upload_id, "train")
         config.validation_file = self._split_file(request.upload_id, "validation")
         config.test_file = self._split_file(request.upload_id, "test")
