@@ -24,6 +24,8 @@ class Preprocessor:
                 "reference_answer": normalized_row.get("reference_answer", ""),
                 "answer": normalized_row.get("answer", ""),
                 "rubric": normalized_row.get("rubric", ""),
+                "score": normalized_row.get("score", ""),
+                "reasoning": normalized_row.get("reasoning", ""),
             }
             signature = self._build_signature(payload)
 
@@ -32,7 +34,6 @@ class Preprocessor:
 
             seen.add(signature)
             rows.append(normalized_row)
-
         return Dataset.from_list(rows)
 
     def _build_signature(self, row: dict[str, Any]) -> str:
