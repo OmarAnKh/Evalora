@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Moon, RotateCcw, ChevronRight, MessageSquare, SunMedium, Upload } from 'lucide-react';
+import { RotateCcw, ChevronRight, MessageSquare, Upload, Sun, Moon } from 'lucide-react';
 import SplashScreen from './components/SplashScreen';
 import PipelineForm from './components/PipelineForm';
 import ResultsDisplay from './components/ResultsDisplay';
@@ -9,32 +9,30 @@ import type { PipelineTrainEvaluateResponse } from './lib/api';
 
 type View = 'pipeline' | 'results';
 type NextStep = 'none' | 'try' | 'upload';
-type Theme = 'dark' | 'light';
-
-const THEME_STORAGE_KEY = 'evalora-theme';
-
-function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark';
-
-  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (storedTheme === 'dark' || storedTheme === 'light') return storedTheme;
-
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+type Theme = 'light' | 'dark';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [view, setView] = useState<View>('pipeline');
   const [result, setResult] = useState<PipelineTrainEvaluateResponse | null>(null);
   const [nextStep, setNextStep] = useState<NextStep>('none');
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('evalora-theme');
+      if (stored === 'light' || stored === 'dark') return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  });
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.style.colorScheme = theme;
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('evalora-theme', theme);
   }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  }, []);
 
   const handleResult = useCallback((res: PipelineTrainEvaluateResponse) => {
     setResult(res);
@@ -50,43 +48,82 @@ export default function App() {
     setView('pipeline');
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
-  }, []);
-
-  // All hooks are above this line. Early return is safe now.
   if (showSplash) return <SplashScreen onFinish={dismissSplash} />;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--page-bg)' }}>
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 70% 30% at 50% -5%, var(--page-glow) 0%, transparent 70%)',
-        }}
-      />
+    <div className="min-h-screen flex flex-col relative" style={{ background: 'var(--bg-deep)' }}>
+      {/* Gradient orbs background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        {/* Primary coral orb */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-20%',
+            right: '-10%',
+            width: '50vw',
+            height: '50vw',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+          }}
+        />
+        {/* Secondary teal orb */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '10%',
+            left: '-15%',
+            width: '60vw',
+            height: '60vw',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--secondary-dim) 0%, transparent 70%)',
+            filter: 'blur(100px)',
+          }}
+        />
+        {/* Accent purple orb */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '40%',
+            right: '20%',
+            width: '40vw',
+            height: '40vw',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--accent-dim) 0%, transparent 60%)',
+            filter: 'blur(60px)',
+          }}
+        />
+      </div>
 
       <header
-        className="sticky top-0 flex items-center justify-between px-5 py-3"
+        className="sticky top-0 flex items-center justify-between px-6 py-4"
         style={{
-          background: 'var(--header-bg)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          background: 'var(--bg-surface)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderBottom: '1px solid var(--border)',
           zIndex: 50,
         }}
       >
-        <div className="flex items-center gap-3">
-          <div className="section-icon" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-focus)' }}>
-            <span className="font-brand" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent)' }}>E</span>
+        <div className="flex items-center gap-4">
+          <div
+            className="section-icon"
+            style={{
+              background: 'linear-gradient(135deg, var(--primary-dim), var(--secondary-dim))',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <span className="font-brand" style={{ fontSize: '0.9rem', fontWeight: 700, background: 'linear-gradient(135deg, var(--primary), var(--secondary))', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              E
+            </span>
           </div>
           <h1
             className="font-brand"
             style={{
-              fontSize: '1.05rem',
+              fontSize: '1.25rem',
               fontWeight: 700,
-              letterSpacing: '0.04em',
-              background: 'var(--brand-gradient)',
+              letterSpacing: '0.02em',
+              background: 'linear-gradient(135deg, var(--primary), var(--secondary), var(--accent))',
               WebkitBackgroundClip: 'text',
               backgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -95,59 +132,54 @@ export default function App() {
             Evalora
           </h1>
           {view === 'results' && (
-            <div className="flex items-center gap-1.5">
-              <ChevronRight size={10} style={{ color: 'var(--text-muted)' }} />
+            <div className="flex items-center gap-2">
+              <ChevronRight size={12} style={{ color: 'var(--text-muted)' }} />
               <span className="font-brand text-xs tracking-wider uppercase" style={{ color: 'var(--text-muted)' }}>
                 Results
               </span>
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={toggleTheme}
-            className="icon-btn"
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            aria-pressed={theme === 'light'}
-            style={{ fontSize: '0.72rem' }}
+            className="btn"
+            style={{ padding: '8px 12px', minWidth: 36 }}
+            aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <SunMedium size={13} /> : <Moon size={13} />}
-            <span className={`toggle-track ${theme === 'light' ? 'active' : ''}`} aria-hidden="true" style={{ marginLeft: 6 }}>
-              <span className="toggle-knob" />
-            </span>
+            {theme === 'dark' ? <Sun size={16} style={{ color: 'var(--warning)' }} /> : <Moon size={16} style={{ color: 'var(--accent)' }} />}
           </button>
-
           {view === 'results' && (
-            <button onClick={handleReset} className="btn" style={{ padding: '6px 12px', fontSize: '0.72rem' }}>
-              <RotateCcw size={11} /> New Run
+            <button onClick={handleReset} className="btn" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>
+              <RotateCcw size={12} /> New Run
             </button>
           )}
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-8">
+      <main className="flex-1 px-6 py-10" style={{ position: 'relative', zIndex: 1 }}>
         {view === 'pipeline' && <PipelineForm onResult={handleResult} />}
 
         {view === 'results' && result && (
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-8">
             <ResultsDisplay result={result} />
 
             <div className="divider" />
 
             {nextStep === 'none' && (
-              <div className="card p-5 text-center space-y-4 animate-fade-up">
-                <p className="font-brand text-xs tracking-widest uppercase" style={{ color: 'var(--text-secondary)' }}>
+              <div className="card p-8 text-center space-y-6 animate-fade-up">
+                <p className="font-brand text-sm tracking-widest uppercase" style={{ color: 'var(--text-secondary)' }}>
                   What's Next?
                 </p>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 400, margin: '0 auto' }}>
                   Test your model with a custom prompt or upload it to HuggingFace Hub.
                 </p>
-                <div className="flex gap-3 justify-center flex-wrap">
-                  <button onClick={() => setNextStep('try')} className="btn btn-primary" style={{ padding: '10px 24px' }}>
-                    <MessageSquare size={14} /> Try Model
+                <div className="flex gap-4 justify-center flex-wrap">
+                  <button onClick={() => setNextStep('try')} className="btn btn-primary" style={{ padding: '12px 28px' }}>
+                    <MessageSquare size={16} /> Try Model
                   </button>
-                  <button onClick={() => setNextStep('upload')} className="btn" style={{ padding: '10px 24px' }}>
-                    <Upload size={14} /> Upload to HuggingFace
+                  <button onClick={() => setNextStep('upload')} className="btn btn-secondary" style={{ padding: '12px 28px' }}>
+                    <Upload size={16} /> Upload to HuggingFace
                   </button>
                 </div>
               </div>
@@ -161,7 +193,7 @@ export default function App() {
                 <button
                   onClick={() => setNextStep(nextStep === 'try' ? 'upload' : 'try')}
                   className="btn"
-                  style={{ fontSize: '0.75rem' }}
+                  style={{ fontSize: '0.85rem' }}
                 >
                   {nextStep === 'try' ? 'Upload to HuggingFace instead' : 'Try Model instead'}
                 </button>
@@ -171,8 +203,8 @@ export default function App() {
         )}
       </main>
 
-      <footer className="text-center py-4 mt-auto" style={{ borderTop: '1px solid var(--border)' }}>
-        <span className="font-brand" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', letterSpacing: '0.15em' }}>
+      <footer className="text-center py-5 mt-auto" style={{ borderTop: '1px solid var(--border)', position: 'relative', zIndex: 1 }}>
+        <span className="font-brand" style={{ color: 'var(--text-muted)', fontSize: '0.65rem', letterSpacing: '0.18em' }}>
           EVALORA &middot; TEACH AI HOW TO EVALUATE
         </span>
       </footer>

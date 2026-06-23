@@ -129,10 +129,8 @@ function ComparisonBarChart({
   onSelectMetric: (metricId: string) => void;
 }) {
   const groups = getMetricGroups(evaluation);
-  const metrics = groups.flatMap((group) => group.metrics.map((metric) => ({ ...metric, group: group.title })));
 
-
-  if (!metrics.length) return null;
+  if (!groups.length || groups.every(g => g.metrics.length === 0)) return null;
 
   return (
     <div className="chart-card w-full lg:col-span-2 space-y-4">
@@ -204,7 +202,7 @@ function ComparisonBarChart({
                         <span className="chart-score-pill-value">{formatChartValue(finetuned)}</span>
                       </div>
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2 mt-2">
                       <div className="chart-track">
                         <div className="chart-fill chart-fill-baseline" style={{ width: baselineWidth }} />
                       </div>
@@ -264,7 +262,7 @@ function EvaluationSection({ evaluation }: { evaluation: EvaluationComparison })
           </div>
           <div className="evaluation-kpi">
             <span>Best Lift</span>
-            <strong className="mono">{bestLift ? `${bestLift.label} ${bestLift.value >= 0 ? '+' : ''}${bestLift.value.toFixed(4)}` : '--'}</strong>
+            <strong className="mono">{bestLift ? `${bestLift.value >= 0 ? '+' : ''}${bestLift.value.toFixed(4)}` : '--'}</strong>
           </div>
         </div>
       </div>
@@ -327,7 +325,7 @@ function TrainingSection({ data }: { data: Record<string, unknown> }) {
           {entries.map(([key, value]) => (
             <div key={key} className="metric metric-elevated">
               <p className="metric-label">{scoreLabel(key)}</p>
-              <p className={`metric-value ${typeof value === 'number' ? 'mono' : ''}`}>{fmt(value)}</p>
+              <p className={`metric-value ${typeof value === 'number' ? 'mono' : ''}`} style={{ fontSize: typeof value === 'number' ? '1.15rem' : '1rem' }}>{fmt(value)}</p>
             </div>
           ))}
         </div>
@@ -346,7 +344,7 @@ function TrainingSection({ data }: { data: Record<string, unknown> }) {
               {inner.map(([key, value]) => (
                 <div key={key} className="metric metric-elevated">
                   <p className="metric-label">{scoreLabel(key)}</p>
-                  <p className={`metric-value ${typeof value === 'number' ? 'mono' : ''}`}>{fmt(value)}</p>
+                  <p className={`metric-value ${typeof value === 'number' ? 'mono' : ''}`} style={{ fontSize: typeof value === 'number' ? '1.15rem' : '1rem' }}>{fmt(value)}</p>
                 </div>
               ))}
             </div>

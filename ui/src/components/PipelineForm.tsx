@@ -1,22 +1,10 @@
 import { useState, useRef } from 'react';
 import { Upload, ChevronDown, ChevronUp, Cpu, Zap, X } from 'lucide-react';
-import { runFullPipeline, type PipelineTrainEvaluateResponse } from '../lib/api';
+import { runFullPipeline, type FullRunParams, type PipelineTrainEvaluateResponse } from '../lib/api';
 
 interface Props {
   onResult: (result: PipelineTrainEvaluateResponse) => void;
 }
-
-const datasetExample = `{
-  "task": "Grade the response to the customer email.",
-  "reference_answer": "We apologize for the delay and offer a replacement within 3 business days.",
-  "answer": "Sorry for the wait. We can send a replacement this week.",
-  "rubric": [
-    {"criterion": "Apology", "description": "Must apologize clearly", "weight": 0.5},
-    {"criterion": "Resolution", "description": "Offer replacement with a timeline", "weight": 0.5}
-  ],
-  "score": 3,
-  "reasoning": "Includes an apology and a replacement, but the timeline is less specific than 3 business days."
-}`;
 
 export default function PipelineForm({ onResult }: Props) {
   const [file, setFile] = useState<File | null>(null);
@@ -77,7 +65,7 @@ export default function PipelineForm({ onResult }: Props) {
   };
 
   return (
-    <form onSubmit={submit} className="w-full max-w-2xl mx-auto space-y-5 animate-fade-up">
+    <form onSubmit={submit} className="w-full max-w-4xl mx-auto space-y-5 animate-fade-up">
       {/* Title */}
       <div className="text-center mb-6">
         <div className="flex items-center justify-center gap-2 mb-2">
@@ -92,17 +80,8 @@ export default function PipelineForm({ onResult }: Props) {
       </div>
 
       {/* Dataset Upload */}
-      <div className="card p-5 space-y-4">
+      <div className="card p-5">
         <span className="label">Dataset File *</span>
-        <div className="dataset-example">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <span className="label" style={{ marginBottom: 0 }}>Example JSONL Record</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>Before upload</span>
-          </div>
-          <pre className="dataset-example-code">
-            <code>{datasetExample}</code>
-          </pre>
-        </div>
         <div
           className={`dropzone ${dragOver ? 'dragover' : ''} ${file ? 'has-file' : ''} flex flex-col items-center justify-center py-8 px-4`}
           onClick={() => fileRef.current?.click()}
@@ -114,7 +93,7 @@ export default function PipelineForm({ onResult }: Props) {
             onChange={e => e.target.files?.[0] && setFile(e.target.files[0])} />
           {file ? (
             <div className="flex items-center gap-3">
-              <div className="section-icon" style={{ background: 'var(--success-dim)', border: '1px solid var(--success-border)' }}>
+              <div className="section-icon" style={{ background: 'var(--success-dim)', border: '1px solid var(--success)' }}>
                 <Zap size={14} style={{ color: 'var(--success)' }} />
               </div>
               <div className="text-left">
@@ -122,7 +101,7 @@ export default function PipelineForm({ onResult }: Props) {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{(file.size / 1024).toFixed(1)} KB</p>
               </div>
               <button type="button" onClick={e => { e.stopPropagation(); setFile(null); }}
-                className="ml-2 p-1 rounded-md transition-colors" style={{ color: 'var(--text-muted)' }}>
+                className="ml-2 p-1 rounded-md hover:bg-white/5" style={{ color: 'var(--text-muted)' }}>
                 <X size={14} />
               </button>
             </div>
@@ -180,7 +159,7 @@ export default function PipelineForm({ onResult }: Props) {
 
       {/* Advanced */}
       <div className="card overflow-hidden">
-        <button type="button" className="w-full flex items-center justify-between px-5 py-3.5 transition-colors"
+        <button type="button" className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.015] transition-colors"
           onClick={() => setAdvanced(!advanced)}>
           <span className="label" style={{ marginBottom: 0 }}>Advanced Settings</span>
           {advanced ? <ChevronUp size={14} style={{ color: 'var(--text-muted)' }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />}
@@ -206,7 +185,7 @@ export default function PipelineForm({ onResult }: Props) {
                   {trainingConfig ? trainingConfig.name : 'Optional JSON/YAML'}
                 </span>
                 {trainingConfig && (
-                  <button type="button" onClick={e => { e.stopPropagation(); setTrainingConfig(null); }} className="ml-auto p-0.5 rounded transition-colors" style={{ color: 'var(--text-muted)' }}>
+                  <button type="button" onClick={e => { e.stopPropagation(); setTrainingConfig(null); }} className="ml-auto p-0.5 rounded hover:bg-white/5" style={{ color: 'var(--text-muted)' }}>
                     <X size={12} />
                   </button>
                 )}

@@ -38,9 +38,9 @@ export default function HuggingFaceUpload({ uploadId }: Props) {
 
   if (result) {
     return (
-      <div className="card-solid p-5 space-y-4 animate-fade-up" style={{ borderColor: 'var(--success-border)' }}>
+      <div className="card-solid p-5 space-y-4 animate-fade-up" style={{ borderColor: 'var(--success)' }}>
         <div className="flex items-center gap-3">
-          <div className="section-icon" style={{ background: 'var(--success-dim)', border: '1px solid var(--success-border)' }}>
+          <div className="section-icon" style={{ background: 'var(--success-dim)', border: '1px solid var(--success)' }}>
             <CheckCircle size={16} style={{ color: 'var(--success)' }} />
           </div>
           <div>
@@ -59,13 +59,13 @@ export default function HuggingFaceUpload({ uploadId }: Props) {
   return (
     <form onSubmit={submit} className="card-solid p-5 space-y-4 animate-fade-up">
       <div className="flex items-center gap-2.5">
-        <div className="section-icon" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-focus)' }}>
+        <div className="section-icon" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border)' }}>
           <Upload size={13} style={{ color: 'var(--accent)', opacity: 0.8 }} />
         </div>
         <h3 className="font-brand text-xs tracking-widest uppercase" style={{ color: 'var(--text-secondary)' }}>Upload to HuggingFace</h3>
       </div>
 
-      <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-focus)' }}>
+      <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border)' }}>
         <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>Experiment:</span>
         <span className="mono" style={{ color: 'var(--accent)', fontSize: '0.75rem' }}>{uploadId}</span>
       </div>
@@ -80,8 +80,8 @@ export default function HuggingFaceUpload({ uploadId }: Props) {
         <input className="input" placeholder="your-hf-username" value={username} onChange={e => setUsername(e.target.value)} />
       </div>
       <div>
-        <label className="label">Repo Name</label>
-        <input className="input" placeholder="optional" value={repoName} onChange={e => setRepoName(e.target.value)} />
+        <label className="label">Repo Name *</label>
+        <input className="input" placeholder={`evaluator-${uploadId}`} value={repoName} onChange={e => setRepoName(e.target.value)} />
       </div>
 
       <label className="flex items-center gap-2.5 cursor-pointer select-none">

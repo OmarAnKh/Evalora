@@ -23,11 +23,7 @@ export default function TryModel({ uploadId }: Props) {
   };
   const updateRubric = (i: number, field: keyof RubricItem, val: string | number) => {
     const next = [...rubric];
-    if (field === 'weight') {
-      next[i] = { ...next[i], weight: Number(val) };
-    } else {
-      next[i] = { ...next[i], [field]: String(val) };
-    }
+    (next[i] as Record<string, string | number>)[field] = val;
     setRubric(next);
   };
 
@@ -55,18 +51,19 @@ export default function TryModel({ uploadId }: Props) {
       setResult(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Inference failed.');
+      console.log(uploadId);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto animate-fade-up">
+    <div className="w-full max-w-4xl mx-auto animate-fade-up">
       <div className="card-solid p-5 space-y-5">
         <div className="flex items-center gap-2.5">
           <div
             className="section-icon"
-            style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-focus)' }}
+            style={{ background: 'var(--accent-dim)', border: '1px solid var(--border)' }}
           >
             <MessageSquare size={13} style={{ color: 'var(--accent)', opacity: 0.8 }} />
           </div>
@@ -85,7 +82,7 @@ export default function TryModel({ uploadId }: Props) {
 
         {result ? (
           <div className="space-y-4">
-            <div className="card p-4 space-y-3" style={{ borderColor: 'var(--border-focus)' }}>
+            <div className="card p-4 space-y-3" style={{ borderColor: 'var(--primary)' }}>
               <div className="flex items-center gap-2">
                 <Sparkles size={14} style={{ color: 'var(--accent)' }} />
                 <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.82rem' }}>
@@ -199,7 +196,7 @@ export default function TryModel({ uploadId }: Props) {
                       className="input"
                       value={r.weight}
                       onChange={(e) => updateRubric(i, 'weight', Number(e.target.value))}
-                      style={{ fontSize: '0.78rem', textAlign: 'center' }}
+                      style={{ fontSize: '0.78rem', textAlign: 'center', padding: '4px 8px' }}
                     />
                     <button
                       type="button"
