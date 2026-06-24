@@ -185,7 +185,15 @@ export default function App() {
               </div>
             )}
 
-            {nextStep === 'try' && <TryModel uploadId={result.upload_id} />}
+            {nextStep === 'try' && (
+              <TryModel
+                uploadId={result.upload_id}
+                modelName={
+                  (result.evaluation as { finetuned?: { model_name?: string }; baseline?: { model_name?: string } })?.finetuned?.model_name ||
+                  (result.evaluation as { finetuned?: { model_name?: string }; baseline?: { model_name?: string } })?.baseline?.model_name
+                }
+              />
+            )}
             {nextStep === 'upload' && <HuggingFaceUpload uploadId={result.upload_id} />}
 
             {nextStep !== 'none' && (

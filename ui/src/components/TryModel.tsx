@@ -4,9 +4,10 @@ import { tryModel, type ModelInferenceResponse, type RubricItem } from '../lib/a
 
 interface Props {
   uploadId: string;
+  modelName?: string;
 }
 
-export default function TryModel({ uploadId }: Props) {
+export default function TryModel({ uploadId, modelName}: Props) {
   const [referenceAnswer, setReferenceAnswer] = useState('');
   const [answer, setAnswer] = useState('');
   const [task, setTask] = useState('');
@@ -47,6 +48,7 @@ export default function TryModel({ uploadId }: Props) {
         answer,
         rubric: validRubric,
         task: task.trim() || undefined,
+        model_name: modelName || undefined,
       });
       setResult(res);
     } catch (err) {

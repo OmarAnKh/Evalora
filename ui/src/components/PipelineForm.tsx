@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, ChevronDown, ChevronUp, Cpu, Zap, X } from 'lucide-react';
+import { Upload, ChevronDown, ChevronUp, Cpu, Zap, X, FileJson } from 'lucide-react';
 import { runFullPipeline, type FullRunParams, type PipelineTrainEvaluateResponse } from '../lib/api';
 
 interface Props {
@@ -114,6 +114,83 @@ export default function PipelineForm({ onResult }: Props) {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginTop: 3 }}>CSV, JSON, JSONL, Parquet, XLSX</p>
             </>
           )}
+        </div>
+        {/* JSONL Format Example */}
+        <div className="mt-4 p-4 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--panel-border)' }}>
+          <div className="flex items-start gap-3">
+            <FileJson size={16} style={{ color: 'var(--secondary)', flexShrink: 0, marginTop: 2 }} />
+            <div className="flex-1">
+              <p className="font-brand text-xs tracking-wide uppercase" style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>
+                JSONL Format Example
+              </p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: 10 }}>
+                Each line should be a valid JSON object with task, reference, answer, rubric, and optional score/reasoning:
+              </p>
+              <div
+                className="mono text-xs"
+                style={{
+                  background: 'var(--bg-deep)',
+                  borderRadius: 8,
+                  padding: '14px 18px',
+                  overflow: 'auto',
+                  lineHeight: 1.8,
+                }}
+              >
+                <div><span style={{ color: '#c084fc' }}>&#123;</span></div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: 'var(--primary)' }}>"task"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"Grade the response to the customer email."</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                </div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: 'var(--primary)' }}>"reference_answer"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"We apologize for the delay and offer a replacement within 3 business days."</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                </div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: 'var(--primary)' }}>"answer"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"Sorry for the wait. We can send a replacement this week."</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                </div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: 'var(--primary)' }}>"rubric"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--secondary)' }}>[</span>
+                </div>
+                <div style={{ paddingLeft: 32 }}>
+                  <span style={{ color: '#c084fc' }}>&#123;</span>
+                  <span style={{ color: 'var(--primary)' }}>"criterion"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"Apology"</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                  <span style={{ color: 'var(--primary)' }}>"description"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"Must apologize clearly"</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                  <span style={{ color: 'var(--primary)' }}>"weight"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--secondary)' }}>0.5</span>
+                  <span style={{ color: '#c084fc' }}>&#125;</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                </div>
+                <div style={{ paddingLeft: 32 }}>
+                  <span style={{ color: '#c084fc' }}>&#123;</span>
+                  <span style={{ color: 'var(--primary)' }}>"criterion"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"Resolution"</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                  <span style={{ color: 'var(--primary)' }}>"description"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"Offer replacement with a timeline"</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                  <span style={{ color: 'var(--primary)' }}>"weight"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--secondary)' }}>0.5</span>
+                  <span style={{ color: '#c084fc' }}>&#125;</span>
+                </div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: 'var(--secondary)' }}>]</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                </div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: 'var(--primary)' }}>"score"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--secondary)' }}>3</span><span style={{ color: 'var(--text-muted)' }}>,</span>
+                </div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: 'var(--primary)' }}>"reasoning"</span><span style={{ color: 'var(--text-muted)' }}>: </span>
+                  <span style={{ color: 'var(--success)' }}>"Includes an apology and a replacement, but the timeline is less specific than 3 business days."</span>
+                </div>
+                <div><span style={{ color: '#c084fc' }}>&#125;</span></div>
+              </div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.68rem', marginTop: 10 }}>
+                Required: <span style={{ color: 'var(--primary)' }}>task</span>, <span style={{ color: 'var(--primary)' }}>answer</span>, <span style={{ color: 'var(--primary)' }}>rubric</span>. Optional: <span style={{ color: 'var(--primary)' }}>reference_answer</span>, <span style={{ color: 'var(--primary)' }}>score</span>, <span style={{ color: 'var(--primary)' }}>reasoning</span>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
