@@ -37,6 +37,40 @@ class EvaluationService:
             )
         return path
 
+    def _build_manual_inference_messages(
+        self,
+        reference_answer: str,
+        answer: str,
+        rubric: list[dict[str, Any]],
+        task: str | None = None,
+    ) -> list[dict[str, str]]:
+        task_text = (
+            task.strip()
+            if task and task.strip()
+            else "Evaluate the student's answer using the reference answer and rubric."
+        )
+        user_content = (
+            "Task:\n"
+            f"{task_text}\n\n"
+            "Reference Answer:\n"
+            f"{reference_answer.strip()}\n\n"
+            "Student Answer:\n"
+            f"{answer.strip()}\n\n"
+            "Rubric:\n"
+            f"{json.dumps(rubric, ensure_ascii=False, indent=2)}\n\n"
+            "Return only valid JSON with keys score and reasoning."
+        )
+        return [
+            {
+                "role": "system",
+                "content": (
+                    "You are an automated evaluation model. "
+                    "Score the answer strictly using the rubric and return JSON only."
+                ),
+            },
+            {"role": "user", "content": user_content},
+        ]
+
     def _load_expected(self, dataset) -> list[dict[str, Any]]:
         expected: list[dict[str, Any]] = []
         for row in dataset:
@@ -231,6 +265,40 @@ class EvaluationService:
             with path.open("w", encoding="utf-8") as handle:
                 json.dump(result, handle, indent=2)
         return result
+
+    def predict_with_finetuned_model(
+        self,
+        upload_id: str,
+        reference_answer: str,
+        answer: str,
+        rubric: list[dict[str, Any]],
+        task: str | None = None,
+        model_name: str = DEFAULT_MODEL_NAME,
+        max_seq_length: int = DEFAULT_MAX_SEQ_LENGTH,
+        load_in_4bit: bool = DEFAULT_LOAD_IN_4BIT,
+        generation: GenerationConfig | None = None,
+    ) -> dict[str, Any]:
+        from src.inference import EvaloraPredictor
+
+        predictor = EvaloraPredictor(
+            model_name=model_name,
+            adapter_path=str(self._adapter_path(upload_id)),
+            max_seq_length=max_seq_length,
+            load_in_4bit=load_in_4bit,
+            generation=generation,
+        )
+        messages = self._build_manual_inference_messages(
+            reference_answer=reference_answer,
+            answer=answer,
+            rubric=rubric,
+            task=task,
+        )
+        prediction = predictor.predict({"messages": messages})
+        return {
+            "upload_id": upload_id,
+            "score": prediction.get("score"),
+            "reasoning": prediction.get("reasoning", ""),
+        }
 
 
 # Backward-compatible alias for the existing route import.

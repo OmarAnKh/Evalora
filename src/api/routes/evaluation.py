@@ -8,6 +8,7 @@ from src.schemas.evaluation import (
     EvaluationResultRequest,
     FinetunedEvaluationRequest,
 )
+from src.schemas.inference import ModelInferenceRequest, ModelInferenceResponse
 from src.services.evaluation import EvaluationService
 
 router = APIRouter()
@@ -23,7 +24,13 @@ def _raise_http(exc: Exception) -> None:
 
 
 def _prediction_file(upload_id: str, split: str, name: str) -> str:
-    return str(Path("experiments") / upload_id / "evaluation" / split / f"{name}_predictions.jsonl")
+    return str(
+        Path("experiments")
+        / upload_id
+        / "evaluation"
+        / split
+        / f"{name}_predictions.jsonl"
+    )
 
 
 def _comparison_dir(upload_id: str, split: str) -> str:
@@ -74,6 +81,22 @@ def compare_baseline_and_finetuned(request: ComparisonEvaluationRequest):
             use_kappa=request.use_cohen_kappa,
             use_bertscore=request.use_bertscore,
             output_dir=_comparison_dir(request.upload_id, request.split),
+        )
+    except Exception as exc:
+        _raise_http(exc)
+
+
+@router.post("/try-model", response_model=ModelInferenceResponse)
+def try_model(request: ModelInferenceRequest):
+    """Run a single prediction using the trained adapter stored under models/{upload_id}/lora."""
+    try:
+        return service.predict_with_finetuned_model(
+            upload_id=request.upload_id,
+            reference_answer=request.reference_answer,
+            answer=request.answer,
+            rubric=[rubric.model_dump() for rubric in request.rubric],
+            task=request.task,
+            model_name=request.model_name,
         )
     except Exception as exc:
         _raise_http(exc)

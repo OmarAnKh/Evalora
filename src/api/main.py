@@ -1,3 +1,7 @@
+from pathlib import Path
+import shutil
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,7 +11,29 @@ from src.api.routes.evaluation import router as evaluation_router
 from src.api.routes.training import router as training_router
 from src.api.routes.upload_model import router as upload_router
 
-app = FastAPI(title="Evalora Dataset API")
+
+def _clear_data_directories() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    data_dir = repo_root / "data"
+
+    for name in ("formatted", "splits", "raw", "tokenized"):
+        target_dir = data_dir / name
+        if target_dir.exists():
+            shutil.rmtree(target_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    _clear_data_directories()  # startup
+    yield
+    # shutdown logic here if needed
+
+
+app = FastAPI(
+    title="Evalora Dataset API",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,7 +49,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(dataset_router, prefix="/datasets", tags=["datasets"])
 app.include_router(pipeline_router, prefix="/pipeline", tags=["pipeline"])
