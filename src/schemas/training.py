@@ -10,7 +10,7 @@ class TrainingRequest(BaseModel):
     upload_id: str
     model_name: str = DEFAULT_MODEL_NAME
     experiment_name: str | None = None
-    num_train_epochs: float = 3
+    num_train_epochs: float = 10
     learning_rate: float = 0.0002
     per_device_train_batch_size: int = 1
     gradient_accumulation_steps: int = 4

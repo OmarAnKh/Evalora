@@ -51,7 +51,9 @@ class TrainConfig:
     output_dir: str = "models/Evalora-lora"
     logging_dir: str = "experiments/Evalora-lora/logs"
     report_to: list[str] = field(default_factory=lambda: ["none"])
-    num_train_epochs: float = 3.0
+    num_train_epochs: float = 10.0
+    early_stopping_patience: int = 2
+    early_stopping_threshold: float = 0.0
     cross_validation_folds: int = 5
     per_device_train_batch_size: int = 4
     per_device_eval_batch_size: int = 4
