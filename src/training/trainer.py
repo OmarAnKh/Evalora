@@ -266,7 +266,9 @@ def _run_single_training(config: TrainConfig) -> dict[str, Any]:
 
     started_at = time.time()
     trainer = build_trainer(config)
-    train_result = trainer.train()
+    from unsloth import unsloth_train
+
+    train_result = unsloth_train(trainer)
     trainer.save_model(config.output_dir)
 
     tokenizer = getattr(trainer, "tokenizer", None) or getattr(trainer, "processing_class", None)
@@ -308,6 +310,7 @@ def _run_single_training(config: TrainConfig) -> dict[str, Any]:
             "per_device_eval_batch_size": config.per_device_eval_batch_size,
             "gradient_accumulation_steps": config.gradient_accumulation_steps,
             "max_seq_length": config.max_seq_length,
+            "gradient_accumulation_implementation": "unsloth_train",
         },
         "hardware": hardware,
         "training_time_seconds": duration_seconds,
