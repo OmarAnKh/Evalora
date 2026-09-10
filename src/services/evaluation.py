@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -145,6 +146,13 @@ class EvaluationService:
             "split": split,
             "model_name": model_name,
             "model_variant": "finetuned" if adapter_path else "baseline",
+            "mode": "LoRA adapter" if adapter_path else "pretrained base model",
+            "adapter_path": adapter_path,
+            "inference_config": {
+                "max_seq_length": max_seq_length,
+                "load_in_4bit": load_in_4bit,
+                "generation": asdict(generation) if generation else None,
+            },
             "num_examples": len(predictions),
             "metrics": metrics,
         }

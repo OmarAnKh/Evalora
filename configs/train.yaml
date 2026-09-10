@@ -1,5 +1,9 @@
 experiment_name: Evalora-mistral-lora
 seed: 3407
+training_seeds:
+  - 3407
+  - 2027
+  - 1337
 model_name: unsloth/mistral-7b-instruct-v0.2-bnb-4bit
 max_seq_length: 2048
 load_in_4bit: true
@@ -10,6 +14,7 @@ report_to:
   - none
 
 num_train_epochs: 3
+cross_validation_folds: 5
 per_device_train_batch_size: 2
 per_device_eval_batch_size: 2
 gradient_accumulation_steps: 8
