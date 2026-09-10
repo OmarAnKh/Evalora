@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import torch
 from bert_score import BERTScorer
 from scipy.stats import spearmanr
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.metrics import (
     accuracy_score,
     cohen_kappa_score,
@@ -30,13 +30,17 @@ def _discrete(values: np.ndarray) -> np.ndarray:
 
 
 def _classification_metrics(actual_cls: np.ndarray, predicted_cls: np.ndarray) -> dict[str, Any]:
-    labels = sorted(set(actual_cls.tolist()) | set(predicted_cls.tolist()))
+    labels: list[int] = sorted(set(actual_cls.tolist()) | set(predicted_cls.tolist()))
     precision, recall, f1, support = precision_recall_fscore_support(
         actual_cls,
         predicted_cls,
         labels=labels,
-        zero_division=0,
+        zero_division=cast(Any, 0),
     )
+    precision_values = np.asarray(precision, dtype=float)
+    recall_values = np.asarray(recall, dtype=float)
+    f1_values = np.asarray(f1, dtype=float)
+    support_values = np.asarray(support, dtype=int)
     return {
         "per_class": {
             str(label): {
@@ -45,7 +49,13 @@ def _classification_metrics(actual_cls: np.ndarray, predicted_cls: np.ndarray) -
                 "f1": round(float(f), 4),
                 "support": int(s),
             }
-            for label, p, r, f, s in zip(labels, precision, recall, f1, support)
+            for label, p, r, f, s in zip(
+                labels,
+                precision_values,
+                recall_values,
+                f1_values,
+                support_values,
+            )
         },
         "confusion_matrix": {
             "labels": labels,
@@ -61,7 +71,7 @@ def _bootstrap_uncertainty(
     predicted_cls: np.ndarray,
     samples: int = 1000,
     seed: int = 42,
-) -> dict[str, dict[str, float]]:
+) -> dict[str, dict[str, float | list[float]]]:
     """Estimate sampling uncertainty by resampling paired predictions."""
     rng = np.random.default_rng(seed)
     values: dict[str, list[float]] = {"accuracy": [], "mae": [], "rmse": []}
@@ -142,14 +152,15 @@ def cross_validate_predictions(
     folds: list[dict[str, Any]] = []
     _, class_counts = np.unique(actual_cls, return_counts=True)
     min_class_count = int(class_counts.min())
-    if n_splits > min_class_count:
-        raise ValueError(
-            "n_splits cannot exceed the number of examples in the rarest score class "
-            f"({min_class_count})."
-        )
-    splitter = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    stratified = n_splits <= min_class_count
+    if stratified:
+        splitter = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+        split_iterator = splitter.split(actual_score, actual_cls)
+    else:
+        splitter = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+        split_iterator = splitter.split(actual_score)
     for fold_number, (_, test_indices) in enumerate(
-        splitter.split(actual_score, actual_cls), start=1
+        split_iterator, start=1
     ):
         fold_actual = actual_score[test_indices]
         fold_predicted = predicted_score[test_indices]
@@ -176,7 +187,21 @@ def cross_validate_predictions(
                 round(float(np.percentile(values, 97.5)), 4),
             ],
         }
-    return {"n_splits": n_splits, "seed": seed, "folds": folds, "aggregate": aggregate}
+    return {
+        "n_splits": n_splits,
+        "seed": seed,
+        "stratified": stratified,
+        "fallback_reason": (
+            None
+            if stratified
+            else (
+                "The rarest score class has only "
+                f"{min_class_count} example(s); ordinary K-fold was used."
+            )
+        ),
+        "folds": folds,
+        "aggregate": aggregate,
+    }
 
 
 def _evaluate_baseline(
@@ -237,12 +262,14 @@ def evaluate(
         actual_score, predicted_score, actual_cls, predicted_cls
     )
 
-    spearman_corr = None
+    spearman_corr: float | None = None
     if np.unique(actual_score).size > 1 and np.unique(predicted_score).size > 1:
-        spearman_corr, _ = spearmanr(actual_score, predicted_score)
-    score_metrics["spearman"] = (
-        round(float(spearman_corr), 4) if not np.isnan(spearman_corr) else None
-    )
+        correlation, _ = spearmanr(actual_score, predicted_score)
+        spearman_corr = float(cast(Any, correlation))
+    if spearman_corr is not None and np.isfinite(spearman_corr):
+        score_metrics["spearman"] = round(spearman_corr, 4)
+    else:
+        score_metrics["spearman"] = None
 
     if use_kappa:
         score_metrics["quadratic_weighted_kappa"] = round(
@@ -256,10 +283,13 @@ def evaluate(
             device="cuda" if torch.cuda.is_available() else "cpu",
         )
         precision, recall, f1 = scorer.score(_reasoning(predicted), _reasoning(actual))
+        precision_tensor = cast(torch.Tensor, precision)
+        recall_tensor = cast(torch.Tensor, recall)
+        f1_tensor = cast(torch.Tensor, f1)
         rationale_metrics = {
-            "bert_precision": round(precision.mean().item(), 4),
-            "bert_recall": round(recall.mean().item(), 4),
-            "bert_f1": round(f1.mean().item(), 4),
+            "bert_precision": round(float(precision_tensor.mean().item()), 4),
+            "bert_recall": round(float(recall_tensor.mean().item()), 4),
+            "bert_f1": round(float(f1_tensor.mean().item()), 4),
         }
 
     parse_errors = sum(1 for row in predicted if row.get("parse_error"))
@@ -304,9 +334,16 @@ def evaluate(
             },
         }
     if cross_validation_folds is not None:
-        result["cross_validation"] = cross_validate_predictions(
-            actual,
-            predicted,
-            n_splits=cross_validation_folds,
-        )
+        if cross_validation_folds < 2:
+            result["cross_validation"] = {
+                "status": "skipped",
+                "reason": "At least 2 folds are required for cross-validation.",
+                "requested_folds": cross_validation_folds,
+            }
+        else:
+            result["cross_validation"] = cross_validate_predictions(
+                actual,
+                predicted,
+                n_splits=cross_validation_folds,
+            )
     return result
