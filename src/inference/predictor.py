@@ -34,6 +34,7 @@ class EvaloraPredictor:
             self.model = PeftModel.from_pretrained(self.model, Path(adapter_path))
         prepare_for_inference(self.model)
         self.generation = generation or GenerationConfig()
+        self.max_seq_length = max_seq_length
         self.min_score = min_score
         self.max_score = max_score
 
@@ -54,11 +55,27 @@ class EvaloraPredictor:
 
     def predict(self, sample: dict[str, Any]) -> dict[str, Any]:
         prompt = self._prompt_text(sample)
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        inputs = self.tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=self.max_seq_length,
+        ).to(self.model.device)
+        prompt_length = inputs["input_ids"].shape[-1]
+        max_new_tokens = min(
+            self.generation.max_new_tokens,
+            self.max_seq_length - prompt_length,
+        )
+        if max_new_tokens < 1:
+            raise ValueError(
+                "The prompt fills the configured context window; increase max_seq_length "
+                "or reduce the prompt length."
+            )
         with torch.inference_mode():
             outputs = self.model.generate(
                 **inputs,
-                max_new_tokens=self.generation.max_new_tokens,
+                max_new_tokens=max_new_tokens,
+                max_length=prompt_length + max_new_tokens,
                 temperature=self.generation.temperature,
                 top_p=self.generation.top_p,
                 do_sample=self.generation.do_sample,
