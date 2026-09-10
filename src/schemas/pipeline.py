@@ -52,6 +52,7 @@ class PipelineTrainEvaluateRequest(BaseModel):
     learning_rate: float = 0.0002
     per_device_train_batch_size: int = 1
     gradient_accumulation_steps: int = 4
+    cross_validation_folds: int = Field(default=1, ge=1)
     evaluation_split: str = "test"
     use_cohen_kappa: bool = True
     use_bertscore: bool = True
@@ -69,6 +70,7 @@ class PipelineTrainEvaluateRequest(BaseModel):
         learning_rate: float = Form(0.0002),
         per_device_train_batch_size: int = Form(1),
         gradient_accumulation_steps: int = Form(4),
+        cross_validation_folds: int = Form(1),
         use_cohen_kappa: bool = Form(True),
         use_bertscore: bool = Form(True),
     ) -> "PipelineTrainEvaluateRequest":
@@ -83,6 +85,7 @@ class PipelineTrainEvaluateRequest(BaseModel):
             learning_rate=learning_rate,
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
+            cross_validation_folds=cross_validation_folds,
             use_cohen_kappa=use_cohen_kappa,
             use_bertscore=use_bertscore,
         )

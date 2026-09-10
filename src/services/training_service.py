@@ -57,6 +57,7 @@ class TrainingService:
             "learning_rate",
             "per_device_train_batch_size",
             "gradient_accumulation_steps",
+            "cross_validation_folds",
         ]
         for field in override_fields:
             setattr(config, field, getattr(request, field))
