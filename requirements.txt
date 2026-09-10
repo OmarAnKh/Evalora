@@ -1,0 +1,15 @@
+fastapi>=0.110.0
+pydantic>=2.6.0
+uvicorn>=0.29.0
+python-multipart
+pyyaml>=6.0.2
+# CUDA-enabled PyTorch wheels for the Unsloth training stack.
+--extra-index-url https://download.pytorch.org/whl/cu126
+torch==2.14.0+cu126
+torchvision==0.29.0+cu126
+torchaudio==2.11.0+cu126
+unsloth>=2025.11.1
+zipp==4.1.0
+bert-score>=0.3.13
+scikit-learn>=1.4.0
+tqdm>=4.67.3
