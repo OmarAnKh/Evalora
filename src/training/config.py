@@ -41,6 +41,7 @@ class GenerationConfig:
 class TrainConfig:
     experiment_name: str = "Evalora-lora"
     seed: int = 3407
+    training_seeds: list[int] = field(default_factory=lambda: [3407])
     model_name: str = DEFAULT_MODEL_NAME
     max_seq_length: int = 2048
     load_in_4bit: bool = True
@@ -51,6 +52,7 @@ class TrainConfig:
     logging_dir: str = "experiments/Evalora-lora/logs"
     report_to: list[str] = field(default_factory=lambda: ["none"])
     num_train_epochs: float = 3.0
+    cross_validation_folds: int = 5
     per_device_train_batch_size: int = 4
     per_device_eval_batch_size: int = 4
     gradient_accumulation_steps: int = 4
