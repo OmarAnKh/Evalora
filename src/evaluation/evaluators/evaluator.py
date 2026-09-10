@@ -179,6 +179,33 @@ def cross_validate_predictions(
     return {"n_splits": n_splits, "seed": seed, "folds": folds, "aggregate": aggregate}
 
 
+def _evaluate_baseline(
+    actual: list[dict[str, Any]],
+    predicted: list[dict[str, Any]],
+    use_kappa: bool,
+) -> dict[str, Any]:
+    """Compute baseline metrics without recursively creating more baselines."""
+    actual_score = _scores(actual)
+    predicted_score = _scores(predicted)
+    actual_cls = _discrete(actual_score)
+    predicted_cls = _discrete(predicted_score)
+    score_metrics: dict[str, Any] = {
+        "accuracy": round(float(accuracy_score(actual_cls, predicted_cls)), 4),
+        "rmse": round(float(mean_squared_error(actual_score, predicted_score) ** 0.5), 4),
+        "mae": round(float(mean_absolute_error(actual_score, predicted_score)), 4),
+        **_classification_metrics(actual_cls, predicted_cls),
+    }
+    if use_kappa:
+        score_metrics["quadratic_weighted_kappa"] = round(
+            float(cohen_kappa_score(actual_cls, predicted_cls, weights="quadratic")), 4
+        )
+    return {
+        "score": score_metrics,
+        "rationale": {},
+        "generation": {"parse_error_rate": 0.0, "parse_errors": 0},
+    }
+
+
 def evaluate(
     actual: list[dict[str, Any]],
     predicted: list[dict[str, Any]],
@@ -210,7 +237,9 @@ def evaluate(
         actual_score, predicted_score, actual_cls, predicted_cls
     )
 
-    spearman_corr, _ = spearmanr(actual_score, predicted_score)
+    spearman_corr = None
+    if np.unique(actual_score).size > 1 and np.unique(predicted_score).size > 1:
+        spearman_corr, _ = spearmanr(actual_score, predicted_score)
     score_metrics["spearman"] = (
         round(float(spearman_corr), 4) if not np.isnan(spearman_corr) else None
     )
@@ -244,28 +273,23 @@ def evaluate(
     }
 
     if _include_baselines:
-        majority_score = int(np.bincount(actual_cls).argmax())
+        labels, counts = np.unique(actual_cls, return_counts=True)
+        majority_score = int(labels[counts.argmax()])
         majority_predictions = [{"score": majority_score, "reasoning": ""} for _ in actual]
         result["baselines"] = {
-            "majority_class": evaluate(
+            "majority_class": _evaluate_baseline(
                 actual,
                 majority_predictions,
-                use_kappa=use_kappa,
-                use_bertscore=False,
-                _include_baselines=False,
-                cross_validation_folds=None,
+                use_kappa,
             )
         }
         if baseline_predictions is not None:
             if len(baseline_predictions) != len(actual):
                 raise ValueError("Baseline predictions must have the same length as actual results.")
-            result["baselines"]["external"] = evaluate(
+            result["baselines"]["external"] = _evaluate_baseline(
                 actual,
                 baseline_predictions,
-                use_kappa=use_kappa,
-                use_bertscore=False,
-                _include_baselines=False,
-                cross_validation_folds=None,
+                use_kappa,
             )
     if human_ratings is not None:
         human_result = evaluate_human_ratings(human_ratings)
