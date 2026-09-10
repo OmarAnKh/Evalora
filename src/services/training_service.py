@@ -81,7 +81,7 @@ class TrainingService:
             # Read YAML config from uploaded file
             file_content = file.file.read().decode("utf-8")
             config_dict = yaml.safe_load(StringIO(file_content))
-            config = TrainConfig(**config_dict)
+            config = TrainConfig.from_dict(config_dict)
             print(f"Loaded training config from uploaded file: {config}")
         else:
             print("No config file uploaded, using defaults and request overrides.")

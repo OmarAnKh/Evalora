@@ -4,22 +4,22 @@ model_name: unsloth/mistral-7b-instruct-v0.2-bnb-4bit
 max_seq_length: 2048
 load_in_4bit: true
 
-output_dir: models/Evalora-mistral-lora
-logging_dir: experiments/Evalora-mistral-lora/logs
+output_dir: models/Evalora-mistral-t4-exp
+logging_dir: experiments/Evalora-mistral-t4-exp/logs
 report_to:
   - none
 
 num_train_epochs: 3
-per_device_train_batch_size: 4
-per_device_eval_batch_size: 4
-gradient_accumulation_steps: 4
+per_device_train_batch_size: 2
+per_device_eval_batch_size: 2
+gradient_accumulation_steps: 8
 learning_rate: 0.0002
 warmup_ratio: 0.03
 weight_decay: 0.01
 lr_scheduler_type: cosine
 optim: adamw_8bit
-bf16: true
-fp16: false
+bf16: false
+fp16: true
 packing: false
 eval_strategy: steps
 eval_steps: 50
