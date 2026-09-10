@@ -21,6 +21,12 @@ type EvaluationComparison = {
   split?: string;
   baseline?: EvaluationVariant;
   finetuned?: EvaluationVariant;
+  cross_validation?: {
+    stratified?: boolean;
+    fallback_reason?: string | null;
+    rarest_score_class_count?: number;
+    n_splits?: number;
+  };
 };
 
 function fmt(v: unknown): string {
@@ -163,7 +169,7 @@ function ComparisonBarChart({
             </p>
             <div className="space-y-3">
               {groupMetrics.map(({ key, baseline, finetuned }) => {
-               const metricMax = Math.max(
+                const metricMax = Math.max(
                   1,
                   ...(isNumeric(baseline) ? [Math.abs(baseline)] : []),
                   ...(isNumeric(finetuned) ? [Math.abs(finetuned)] : [])
@@ -236,15 +242,38 @@ function EvaluationSection({ evaluation }: { evaluation: EvaluationComparison })
   }, null);
   const activeMetric = activeMetricId
     ? metricGroups
-        .flatMap((group) => group.metrics.map((metric) => ({ ...metric, groupKey: group.key, groupTitle: group.title })))
-        .find((metric) => metricId(metric.groupKey, metric.key) === activeMetricId)
+      .flatMap((group) => group.metrics.map((metric) => ({ ...metric, groupKey: group.key, groupTitle: group.title })))
+      .find((metric) => metricId(metric.groupKey, metric.key) === activeMetricId)
     : null;
 
   if (!metricGroups.length && !modelName) return null;
 
+  const crossValidation = evaluation.cross_validation;
+  const cvFallbackNotice = crossValidation && crossValidation.stratified === false
+    ? crossValidation.fallback_reason || 'Stratified cross-validation was unavailable for this score distribution.'
+    : null;
+
   return (
     <div className="card-solid result-section space-y-5">
       <SectionHeader icon={<BarChart2 size={13} />} title="Evaluation Metrics" tone="success" />
+
+      {cvFallbackNotice && (
+        <div
+          className="rounded-lg px-4 py-3"
+          style={{
+            background: 'var(--accent-dim)',
+            border: '1px solid var(--panel-border)',
+            color: 'var(--text-secondary)',
+            fontSize: '0.76rem',
+          }}
+        >
+          <strong style={{ color: 'var(--text-primary)' }}>Cross-validation notice: </strong>
+          {cvFallbackNotice}
+          {crossValidation.rarest_score_class_count != null && (
+            <> Rarest score class: {crossValidation.rarest_score_class_count} example(s).</>
+          )}
+        </div>
+      )}
 
       <div className="evaluation-overview">
         <div className="evaluation-model-card">
