@@ -86,18 +86,19 @@ Evalora/
 ```
 
 ## Setup & Installation
-**Python**: 3.10+ recommended
+**Python**: 3.12 required for the Unsloth training stack. Python 3.14 is not supported by the current `datasets`/`dill` dependency combination.
 
 ```bash
-uv venv .venv
-source .venv/bin/activate  # On Windows: .\.venv\Scripts\activate
-uv sync
+python3.12 -m venv .venv
+source .venv/bin/activate  # On Windows: py -3.12 -m venv .venv, then .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 ## Usage
 **API (dataset upload)**
 ```bash
-uvicorn src.api.main:app --reload
+python -m uvicorn src.api.main:app --reload
 ```
 
 ## Frontend
