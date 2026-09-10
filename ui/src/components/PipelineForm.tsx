@@ -19,6 +19,7 @@ export default function PipelineForm({ onResult }: Props) {
   const [lr, setLr] = useState(0.0002);
   const [batchSize, setBatchSize] = useState(1);
   const [gradAccum, setGradAccum] = useState(4);
+  const [cvFolds, setCvFolds] = useState(1);
   const [useKappa, setUseKappa] = useState(true);
   const [useBert, setUseBert] = useState(true);
   const [advanced, setAdvanced] = useState(false);
@@ -53,6 +54,7 @@ export default function PipelineForm({ onResult }: Props) {
         learning_rate: lr,
         per_device_train_batch_size: batchSize,
         gradient_accumulation_steps: gradAccum,
+        cross_validation_folds: cvFolds,
         use_cohen_kappa: useKappa,
         use_bertscore: useBert,
       });
@@ -252,6 +254,10 @@ export default function PipelineForm({ onResult }: Props) {
               <div><label className="label">Seed</label><input type="number" className="input" value={seed} onChange={e => setSeed(Number(e.target.value))} /></div>
               <div><label className="label">Batch Size</label><input type="number" min={1} className="input" value={batchSize} onChange={e => setBatchSize(Number(e.target.value))} /></div>
               <div><label className="label">Grad Accum</label><input type="number" min={1} className="input" value={gradAccum} onChange={e => setGradAccum(Number(e.target.value))} /></div>
+            </div>
+            <div>
+              <label className="label">Stratified CV Folds</label>
+              <input type="number" min={1} className="input" value={cvFolds} onChange={e => setCvFolds(Number(e.target.value))} />
             </div>
             <div>
               <label className="label">Training Config File</label>

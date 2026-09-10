@@ -87,6 +87,7 @@ async def run_pipeline_train_evaluate(
         learning_rate=payload.learning_rate,
         per_device_train_batch_size=payload.per_device_train_batch_size,
         gradient_accumulation_steps=payload.gradient_accumulation_steps,
+        cross_validation_folds=payload.cross_validation_folds,
     )
 
     try:

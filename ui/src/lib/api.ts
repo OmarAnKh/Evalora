@@ -52,6 +52,7 @@ export interface FullRunParams {
   learning_rate: number;
   per_device_train_batch_size: number;
   gradient_accumulation_steps: number;
+  cross_validation_folds: number;
   use_cohen_kappa: boolean;
   use_bertscore: boolean;
 }
@@ -102,6 +103,7 @@ export async function runFullPipeline(params: FullRunParams): Promise<PipelineTr
   fd.append('learning_rate', String(params.learning_rate));
   fd.append('per_device_train_batch_size', String(params.per_device_train_batch_size));
   fd.append('gradient_accumulation_steps', String(params.gradient_accumulation_steps));
+  fd.append('cross_validation_folds', String(params.cross_validation_folds));
   fd.append('use_cohen_kappa', String(params.use_cohen_kappa));
   fd.append('use_bertscore', String(params.use_bertscore));
 
