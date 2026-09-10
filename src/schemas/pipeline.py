@@ -48,7 +48,7 @@ class PipelineTrainEvaluateRequest(BaseModel):
     test_ratio: float = Field(default=0.1, ge=0.0, le=1.0)
     seed: int = Field(default=42, ge=0)
     experiment_name: str | None = None
-    num_train_epochs: float = 3
+    num_train_epochs: float = 10
     learning_rate: float = 0.0002
     per_device_train_batch_size: int = 1
     gradient_accumulation_steps: int = 4
@@ -66,7 +66,7 @@ class PipelineTrainEvaluateRequest(BaseModel):
         test_ratio: float = Form(0.1),
         seed: int = Form(42),
         experiment_name: str | None = Form(None),
-        num_train_epochs: float = Form(3),
+        num_train_epochs: float = Form(10),
         learning_rate: float = Form(0.0002),
         per_device_train_batch_size: int = Form(1),
         gradient_accumulation_steps: int = Form(4),

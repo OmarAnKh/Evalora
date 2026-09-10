@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from sklearn.model_selection import StratifiedKFold
-from transformers import TrainingArguments, set_seed
+from transformers import EarlyStoppingCallback, TrainingArguments, set_seed
 from trl import SFTTrainer
 
 try:
@@ -111,6 +111,13 @@ def _build_sft_trainer_kwargs(config: TrainConfig, tokenizer, prepared, args) ->
         if "dataset_num_proc" in signature:
             legacy_kwargs["dataset_num_proc"] = config.dataset_num_proc
         kwargs.update(legacy_kwargs)
+    if prepared.get("validation") is not None and config.early_stopping_patience > 0:
+        kwargs["callbacks"] = [
+            EarlyStoppingCallback(
+                early_stopping_patience=config.early_stopping_patience,
+                early_stopping_threshold=config.early_stopping_threshold,
+            )
+        ]
     return kwargs
 
 
@@ -306,6 +313,8 @@ def _run_single_training(config: TrainConfig) -> dict[str, Any]:
         "training": {
             "learning_rate": config.learning_rate,
             "num_train_epochs": config.num_train_epochs,
+            "early_stopping_patience": config.early_stopping_patience,
+            "early_stopping_threshold": config.early_stopping_threshold,
             "per_device_train_batch_size": config.per_device_train_batch_size,
             "per_device_eval_batch_size": config.per_device_eval_batch_size,
             "gradient_accumulation_steps": config.gradient_accumulation_steps,

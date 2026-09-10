@@ -15,7 +15,7 @@ export default function PipelineForm({ onResult }: Props) {
   const [valRatio, setValRatio] = useState(0.1);
   const [testRatio, setTestRatio] = useState(0.1);
   const [seed, setSeed] = useState(42);
-  const [epochs, setEpochs] = useState(3);
+  const [epochs, setEpochs] = useState(10);
   const [lr, setLr] = useState(0.0002);
   const [batchSize, setBatchSize] = useState(1);
   const [gradAccum, setGradAccum] = useState(4);
