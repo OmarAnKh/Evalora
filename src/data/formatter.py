@@ -25,30 +25,33 @@ def format_messages(sample: dict[str, Any], include_assistant: bool = True) -> d
         )
 
     system_prompt = (
-        "You are an automated evaluation system.\n"
-        "You must always return valid JSON only."
-    )  
+        "You are an automated evaluation model.\n\n"
+        "Your task is to evaluate a candidate response based on the provided "
+        "task, reference response, and rubric.\n\n"
+        "Evaluate the candidate response according to the rubric and assign an "
+        "appropriate score. The reference response should be used as a guide for "
+        "correctness and completeness. Equivalent wording or valid alternative "
+        "formulations should be accepted when they satisfy the rubric.\n\n"
+        "Your evaluation must:\n\n"
+        "* Follow the provided rubric.\n"
+        "* Consider correctness, completeness, and relevance as specified by the rubric.\n"
+        "* Distinguish between fully correct, partially correct, and incorrect responses.\n"
+        "* Avoid making assumptions beyond the provided information.\n"
+        "* Provide a concise justification for the assigned score.\n"
+        "* Return only valid JSON.\n\n"
+        "The output must follow this format:\n\n"
+        "{\"score\": <score>,\n"
+        "\"reasoning\": \"<brief justification>\"}"
+    )
     user_prompt = (
-        "Task:\n"
-        f"{sample['task']}\n\n"
-        "Reference Answer:\n"
-        f"{sample['reference_answer']}\n\n"
-        "Student Answer:\n"
-        f"{sample['answer']}\n\n"
-        "Rubric:\n"
-        f"{sample['rubric']}\n\n"
-        "You are an evaluation system.\n"
-        "Return ONLY valid JSON.\n\n"
-        "Output format:\n"
-        "{\n"
-        '  "score": 0.0,\n'
-        '  "reasoning": "short explanation"\n'
-        "}\n\n"
-        "Rules:\n"
-        "- output ONLY JSON\n"
-        "- no markdown\n"
-        "- no extra text\n"
-        "- score must be a numeric grade consistent with the rubric and training labels\n"
+        "Task: "
+        f"{sample['task']}\n"
+        "Reference response: "
+        f"{sample['reference_answer']}\n"
+        "Candidate response: "
+        f"{sample['answer']}\n"
+        "Rubric: "
+        f"{sample['rubric']}"
     )
 
     messages = [

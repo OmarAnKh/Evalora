@@ -35,11 +35,6 @@ class EvaloraPredictor:
         prepare_for_inference(self.model)
         self.generation = generation or GenerationConfig()
         self.max_seq_length = max_seq_length
-        if getattr(self.model, "generation_config", None) is not None:
-            self.model.generation_config.max_length = None
-            self.model.generation_config.max_new_tokens = None
-        if getattr(self.model, "config", None) is not None:
-            self.model.config.max_length = max_seq_length
         self.min_score = min_score
         self.max_score = max_score
 
